@@ -1,0 +1,30 @@
+{
+  "name": "agri-sense",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@9.15.5+sha512.845196026aab1cc3f098a0474b64dfbab2afe7a1b4e91dd86895d8e4aa32a7a6d03049e2d0ad770bbe4de023a7122fb68c1a1d6e0d033c7076085f9d5d4800d4",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1",
+    "knex": "^3.1.0",
+    "mssql": "^12.2.0",
+    "nuxt": "^4.2.2",
+    "nuxt-quasar-ui": "3.0.0",
+    "quasar": "^2.8.0",
+    "vue": "^3.5.25",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.6.1",
+    "eslint": "^9.39.2",
+    "eslint-plugin-format": "^1.1.0"
+  }
+}
