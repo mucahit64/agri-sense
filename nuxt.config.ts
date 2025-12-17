@@ -5,6 +5,6 @@ export default defineNuxtConfig({
   modules: ['nuxt-quasar-ui'],
 
   nitro: {
-    preset: 'node-server',
+    preset: process.env.NITRO_PRESET || 'static',
   },
 })
