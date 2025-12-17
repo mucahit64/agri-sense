@@ -4,6 +4,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['nuxt-quasar-ui'],
 
+  // API base URL (frontend → railway backend)
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+    },
+  },
+
+  // Ortama göre build çıktısı
   nitro: {
     preset: process.env.NITRO_PRESET || 'static',
   },
