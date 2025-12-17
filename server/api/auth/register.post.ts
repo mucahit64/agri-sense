@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
     // SQL Server'da IDENTITY değerini almak için
     const [newUser] = await db('users')
       .where({ email })
-      .select('Id')
+      .select('id')
 
     // Session'a kullanıcıyı kaydet
     const session = await useSession(event, {
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     })
 
     await session.update({
-      userId: newUser.Id,
+      userId: newUser.id,
       email,
       name,
       surname,
@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       user: {
-        Id: newUser.Id,
+        id: newUser.id,
         name,
         surname,
         email,

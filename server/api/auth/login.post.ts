@@ -1,3 +1,4 @@
+import type { User } from '~/types/index'
 import db from '~/server/db/knex'
 
 export default defineEventHandler(async (event) => {
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Kullanıcıyı veritabanından bul
-    const user = await db('users')
+    const user: User = await db('users')
       .where({ email })
       .first()
 
@@ -37,18 +38,15 @@ export default defineEventHandler(async (event) => {
     })
 
     await session.update({
-      userId: user.Id,
+      userId: user.id,
       email: user.email,
       name: user.name,
       surname: user.surname,
     })
 
-    // Şifreyi response'dan çıkar
-    const { password: _, ...userWithoutPassword } = user
-
     return {
       success: true,
-      user: userWithoutPassword,
+      user,
     }
   }
   catch (error: any) {

@@ -1,20 +1,17 @@
 import knex from 'knex'
 
 const db = knex({
-  client: 'mssql',
+  client: 'mysql2', // veya 'pg' PostgreSQL için
   connection: {
-    server: 'localhost',
-    database: 'agrisense',
-    user: 'sa',
-    password: '12345678tT',
-    options: {
-      encrypt: false,
-      trustServerCertificate: true,
-      enableArithAbort: true,
-    },
+    host: process.env.DB_HOST || 'localhost',
+    port: Number.parseInt(process.env.DB_PORT || '3306'),
+    user: process.env.DB_USER || 'sa',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'agrisense',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   },
   pool: {
-    min: 0,
+    min: 2,
     max: 10,
   },
 })
