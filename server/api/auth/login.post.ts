@@ -1,4 +1,4 @@
-import type { User } from '~/types/index'
+import type { User } from '~/types'
 import db from '~/server/db/knex'
 
 export default defineEventHandler(async (event) => {
