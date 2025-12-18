@@ -2,7 +2,7 @@
 import type { Reading, Sensor } from '~/types'
 
 definePageMeta({
-  middleware: async (to, from) => {
+  middleware: async (_to, _from) => {
     const { checkAuth } = useAuth()
     const isAuth = await checkAuth()
     if (!isAuth) {
@@ -16,7 +16,6 @@ const router = useRouter()
 const { user, logout } = useAuth()
 
 const sensorId = route.params.id as string
-const sensor = ref<Sensor | null>(null)
 const readings = ref<Reading[]>([])
 const loading = ref(true)
 const limit = ref(50)
@@ -40,7 +39,7 @@ async function handleLogout() {
   router.push('/')
 }
 
-const chartData = computed(() => {
+const _chartData = computed(() => {
   return readings.value.slice().reverse().map(r => ({
     time: new Date(r.recorded_at).toLocaleTimeString('tr-TR'),
     value: r.value,
@@ -48,7 +47,7 @@ const chartData = computed(() => {
 })
 
 const latestValue = computed(() => {
-  return readings.value.length > 0 ? readings.value[0].value : null
+  return readings.value[0]?.value ?? null
 })
 
 const avgValue = computed(() => {

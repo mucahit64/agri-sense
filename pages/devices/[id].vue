@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Device, Sensor } from '~/types'
+import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
-  middleware: async (to, from) => {
+  middleware: async (_to, _from) => {
     const { checkAuth } = useAuth()
     const isAuth = await checkAuth()
     if (!isAuth) {
@@ -39,10 +40,11 @@ const sensorTypes = [
 
 async function loadDevice() {
   try {
-    const response = await $fetch(`/api/devices/${deviceId}`)
+    const response = await $fetch<{ success: boolean, device: Device }>(`/api/devices/${deviceId}`)
     device.value = response.device
   }
   catch (error) {
+    console.error('Cihaz yüklenemedi:', error)
     router.push('/devices')
   }
 }
@@ -79,21 +81,35 @@ async function addSensor() {
     await loadSensors()
   }
   catch (error: any) {
-    alert(error.data?.message || 'Sensör eklenemedi')
+    Notify.create({
+      type: 'negative',
+      message: error.data?.message || 'Sensör eklenemedi',
+    })
   }
 }
 
 async function deleteSensor(id: number) {
-  if (!confirm('Bu sensörü silmek istediğinizden emin misiniz?'))
-    return
-
-  try {
-    await $fetch(`/api/sensors/${id}`, { method: 'DELETE' })
-    await loadSensors()
-  }
-  catch (error: any) {
-    alert(error.data?.message || 'Sensör silinemedi')
-  }
+  Dialog.create({
+    title: 'Onay',
+    message: 'Bu sensörü silmek istediğinizden emin misiniz?',
+    cancel: true,
+    persistent: true,
+  })
+    .onOk(async () => {
+      try {
+        await $fetch(`/api/sensors/${id}`, { method: 'DELETE' })
+        await loadSensors()
+      }
+      catch (error: any) {
+        Notify.create({
+          type: 'negative',
+          message: error.data?.message || 'Sensör silinemedi',
+        })
+      }
+    })
+    .onCancel(() => {
+      // Kullanıcı iptal etti
+    })
 }
 
 function getSensorIcon(type: string) {
