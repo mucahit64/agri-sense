@@ -3,12 +3,10 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('login called:', email, password)
       const response = await $fetch('/api/auth/login', {
         method: 'POST',
         body: { email, password },
       })
-      console.log('login response:', response)
 
       user.value = response.user
       return { success: true }

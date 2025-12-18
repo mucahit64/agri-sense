@@ -204,16 +204,25 @@ const steps = [
           </div>
         </section>
 
-        <!-- STATS SECTION --> <section class="bg-green-700 text-white q-py-xxl">
-          <div class="container q-px-xl">
-            <div class="row text-center">
-              <div v-for="(stat, index) in stats" :key="index" class="col-12 col-md-3">
-                <div class="q-mb-md">
-                  <q-icon :name="stat.icon" size="56px" class="q-mb-md" /> <div class="text-h3 text-weight-bold">
-                    {{ stat.value }}
-                  </div> <div class="text-h6 text-green-2">
-                    {{ stat.label }}
-                  </div>
+        <!-- STATS SECTION -->
+        <section class="stats-section">
+          <div class="row text-center">
+            <div
+              v-for="(stat, index) in stats"
+              :key="index"
+              class="col-12 col-md-3"
+            >
+              <div class="stat-item">
+                <q-icon
+                  :name="stat.icon"
+                  size="56px"
+                  class="q-mb-md"
+                />
+                <div class="text-h3 text-weight-bold">
+                  {{ stat.value }}
+                </div>
+                <div class="text-h6 text-green-2 q-mt-sm">
+                  {{ stat.label }}
                 </div>
               </div>
             </div>
@@ -339,6 +348,16 @@ const steps = [
   background: linear-gradient(135deg, #2e7d32, #1b5e20);
   color: white;
   text-align: center;
+}
+
+.stats-section {
+  padding: 80px 64px;
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  color: white;
+}
+
+.stat-item {
+  padding: 24px;
 }
 
 .hero-card {

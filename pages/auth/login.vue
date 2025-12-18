@@ -2,8 +2,8 @@
 const { login } = useAuth()
 const router = useRouter()
 
-const email = ref('ali@test.com')
-const password = ref('123456')
+const email = ref('')
+const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
