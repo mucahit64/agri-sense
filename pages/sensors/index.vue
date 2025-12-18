@@ -2,7 +2,7 @@
 import type { Sensor } from '~/types'
 
 definePageMeta({
-  middleware: async (to, from) => {
+  middleware: async (_to, _from) => {
     const { checkAuth } = useAuth()
     const isAuth = await checkAuth()
     if (!isAuth) {
