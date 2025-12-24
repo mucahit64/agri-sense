@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Device } from '~/types'
+import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
-  middleware: async (to, from) => {
+  middleware: async (_to, _from) => {
     const { checkAuth } = useAuth()
     const isAuth = await checkAuth()
     if (!isAuth) {
@@ -45,23 +46,42 @@ async function addDevice() {
     showAddDialog.value = false
     newDevice.value = { device_uid: '', device_name: '' }
     await loadDevices()
+    Notify.create({
+      type: 'positive',
+      message: 'Cihaz başarıyla eklendi',
+    })
   }
   catch (error: any) {
-    alert(error.data?.message || 'Cihaz eklenemedi')
+    Notify.create({
+      type: 'negative',
+      message: error.data?.message || 'Cihaz eklenemedi',
+    })
   }
 }
 
 async function deleteDevice(id: number) {
-  if (!confirm('Bu cihazı silmek istediğinizden emin misiniz?'))
-    return
-
-  try {
-    await $fetch(`/api/devices/${id}`, { method: 'DELETE' })
-    await loadDevices()
-  }
-  catch (error: any) {
-    alert(error.data?.message || 'Cihaz silinemedi')
-  }
+  Dialog.create({
+    title: 'Onay',
+    message: 'Bu cihazı silmek istediğinizden emin misiniz?',
+    cancel: true,
+    persistent: true,
+  })
+    .onOk(async () => {
+      try {
+        await $fetch(`/api/devices/${id}`, { method: 'DELETE' })
+        await loadDevices()
+        Notify.create({
+          type: 'positive',
+          message: 'Cihaz başarıyla silindi',
+        })
+      }
+      catch (error: any) {
+        Notify.create({
+          type: 'negative',
+          message: error.data?.message || 'Cihaz silinemedi',
+        })
+      }
+    })
 }
 
 async function handleLogout() {

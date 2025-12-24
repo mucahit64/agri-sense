@@ -4,6 +4,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['nuxt-quasar-ui'],
 
+  quasar: {
+    plugins: [
+      'Dialog',
+      'Notify',
+    ],
+  },
+
   // API base URL (frontend → railway backend)
   runtimeConfig: {
     public: {
