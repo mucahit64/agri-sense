@@ -44,7 +44,20 @@ const steps = [
   { icon: 'settings_input_antenna', title: 'Sensörleri Bağlayın', description: 'IoT sensörlerinizi sisteme entegre edin.' },
   { icon: 'insights', title: 'İzleyin ve Optimize Edin', description: 'Verilerinizi analiz edin, kararlar alın.' },
 ]
-</script>X
+
+const contactForm = ref({
+  name: '',
+  email: '',
+  phone: '',
+  message: '',
+})
+
+function submitContact() {
+  // TODO: Implement contact form submission
+  // eslint-disable-next-line no-console
+  console.log('Contact form submitted:', contactForm.value)
+}
+</script>
 
 <template>
   <q-layout view="hHh lpR fFf">
@@ -78,6 +91,7 @@ const steps = [
         <q-btn
           flat
           label="İletişim"
+          to="#contact"
         />
 
         <q-separator
@@ -284,6 +298,176 @@ const steps = [
             class="q-mt-lg"
           />
         </section>
+
+        <!-- CONTACT -->
+        <section
+          id="contact"
+          class="section"
+        >
+          <h2 class="section-title">
+            Bizimle İletişime Geçin
+          </h2>
+          <div class="row q-col-gutter-xl">
+            <!-- Contact Info -->
+            <div class="col-12 col-md-5">
+              <div class="text-h5 text-weight-bold q-mb-lg">
+                İletişim Bilgileri
+              </div>
+
+              <div class="contact-info-item">
+                <q-icon
+                  name="email"
+                  size="24px"
+                  color="green-8"
+                />
+                <div>
+                  <div class="text-subtitle2 text-weight-bold">
+                    E-posta
+                  </div>
+                  <div class="text-body2 text-grey-7">
+                    info@agrisense.com
+                  </div>
+                </div>
+              </div>
+
+              <div class="contact-info-item">
+                <q-icon
+                  name="phone"
+                  size="24px"
+                  color="green-8"
+                />
+                <div>
+                  <div class="text-subtitle2 text-weight-bold">
+                    Telefon
+                  </div>
+                  <div class="text-body2 text-grey-7">
+                    +90 (212) 123 45 67
+                  </div>
+                </div>
+              </div>
+
+              <div class="contact-info-item">
+                <q-icon
+                  name="location_on"
+                  size="24px"
+                  color="green-8"
+                />
+                <div>
+                  <div class="text-subtitle2 text-weight-bold">
+                    Adres
+                  </div>
+                  <div class="text-body2 text-grey-7">
+                    Teknoloji Merkezi, İstanbul, Türkiye
+                  </div>
+                </div>
+              </div>
+
+              <div class="contact-info-item">
+                <q-icon
+                  name="schedule"
+                  size="24px"
+                  color="green-8"
+                />
+                <div>
+                  <div class="text-subtitle2 text-weight-bold">
+                    Çalışma Saatleri
+                  </div>
+                  <div class="text-body2 text-grey-7">
+                    Pazartesi - Cuma: 09:00 - 18:00
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="col-12 col-md-7">
+              <q-card
+                flat
+                bordered
+                class="contact-form"
+              >
+                <q-card-section>
+                  <div class="text-h6 text-weight-bold q-mb-md">
+                    Mesaj Gönderin
+                  </div>
+
+                  <q-form @submit="submitContact">
+                    <div class="row q-col-gutter-md">
+                      <div class="col-12 col-sm-6">
+                        <q-input
+                          v-model="contactForm.name"
+                          label="Adınız Soyadınız *"
+                          outlined
+                          :rules="[val => !!val || 'Bu alan zorunludur']"
+                        >
+                          <template #prepend>
+                            <q-icon name="person" />
+                          </template>
+                        </q-input>
+                      </div>
+
+                      <div class="col-12 col-sm-6">
+                        <q-input
+                          v-model="contactForm.email"
+                          label="E-posta Adresiniz *"
+                          type="email"
+                          outlined
+                          :rules="[
+                            val => !!val || 'Bu alan zorunludur',
+                            val => /.+@.+\..+/.test(val) || 'Geçerli bir e-posta adresi giriniz',
+                          ]"
+                        >
+                          <template #prepend>
+                            <q-icon name="email" />
+                          </template>
+                        </q-input>
+                      </div>
+
+                      <div class="col-12">
+                        <q-input
+                          v-model="contactForm.phone"
+                          label="Telefon Numaranız"
+                          outlined
+                        >
+                          <template #prepend>
+                            <q-icon name="phone" />
+                          </template>
+                        </q-input>
+                      </div>
+
+                      <div class="col-12">
+                        <q-input
+                          v-model="contactForm.message"
+                          label="Mesajınız *"
+                          type="textarea"
+                          outlined
+                          rows="5"
+                          :rules="[val => !!val || 'Bu alan zorunludur']"
+                        >
+                          <template #prepend>
+                            <q-icon name="message" />
+                          </template>
+                        </q-input>
+                      </div>
+
+                      <div class="col-12">
+                        <q-btn
+                          type="submit"
+                          unelevated
+                          color="green-8"
+                          label="Gönder"
+                          icon-right="send"
+                          size="lg"
+                          class="full-width"
+                        />
+                      </div>
+                    </div>
+                  </q-form>
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+        </section>
       </q-page>
     </q-page-container>
 
@@ -362,5 +546,17 @@ const steps = [
 
 .hero-card {
   border-radius: 20px;
+}
+
+.contact-info-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.contact-form {
+  border-radius: 16px;
+  padding: 16px;
 }
 </style>
