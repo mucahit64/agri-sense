@@ -28,6 +28,7 @@ export type SensorType
 export interface Sensor {
   id: number
   device_id: number
+  sensor_uid: string
   sensor_type: SensorType
   name?: string
   pin?: string
@@ -51,6 +52,7 @@ export interface DeviceCreate {
 
 export interface SensorCreate {
   device_id: number
+  sensor_uid: string
   sensor_type: SensorType
   name?: string
   pin?: string
@@ -65,6 +67,7 @@ export interface ReadingCreate {
 
 export interface SensorPayload {
   device_uid: string
+  sensor_uid: string
   sensor_type: SensorType
   value: number
   recorded_at?: string

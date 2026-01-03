@@ -9,9 +9,9 @@ const stats = ref({
 })
 
 const payloadExample = `{
-  device_uid: string,
-  sensor_type: string,
-  value: number
+  "device_uid": "ARDUINO_001",
+  "sensor_uid": "SENSOR_001",
+  "value": 65.5
 }`
 
 onMounted(async () => {

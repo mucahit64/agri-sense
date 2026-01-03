@@ -23,6 +23,7 @@ const loading = ref(true)
 const showAddDialog = ref(false)
 
 const newSensor = ref({
+  sensor_uid: '',
   sensor_type: 'temperature',
   name: '',
   pin: '',
@@ -70,6 +71,7 @@ async function addSensor() {
       method: 'POST',
       body: {
         device_id: Number(deviceId),
+        sensor_uid: newSensor.value.sensor_uid,
         sensor_type: newSensor.value.sensor_type,
         name: newSensor.value.name,
         pin: newSensor.value.pin,
@@ -77,7 +79,7 @@ async function addSensor() {
       },
     })
     showAddDialog.value = false
-    newSensor.value = { sensor_type: 'temperature', name: '', pin: '', unit: '' }
+    newSensor.value = { sensor_uid: '', sensor_type: 'temperature', name: '', pin: '', unit: '' }
     await loadSensors()
   }
   catch (error: any) {
@@ -216,6 +218,9 @@ onMounted(() => {
                     <div class="text-caption text-grey-7">
                       {{ getSensorLabel(sensor.sensor_type) }}
                     </div>
+                    <div class="text-caption text-grey-6">
+                      UID: {{ sensor.sensor_uid }}
+                    </div>
                   </div>
                 </div>
               </q-card-section>
@@ -262,6 +267,14 @@ onMounted(() => {
             </q-card-section>
 
             <q-card-section>
+              <q-input
+                v-model="newSensor.sensor_uid"
+                outlined
+                label="Sensör UID *"
+                class="q-mb-md"
+                hint="Örn: SENSOR_001, ARDUINO_001_SOIL_A0"
+                :rules="[val => !!val || 'Sensör UID zorunludur']"
+              />
               <q-select
                 v-model="newSensor.sensor_type"
                 outlined
