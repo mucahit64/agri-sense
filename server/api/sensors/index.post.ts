@@ -17,10 +17,10 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody<SensorCreate>(event)
 
-  if (!body.device_id || !body.sensor_type) {
+  if (!body.device_id || !body.sensor_uid || !body.sensor_type) {
     throw createError({
       statusCode: 400,
-      message: 'Cihaz ID ve sensör tipi gerekli',
+      message: 'Cihaz ID, sensör UID ve sensör tipi gerekli',
     })
   }
 
@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
 
     const [sensorId] = await db('sensors').insert({
       device_id: body.device_id,
+      sensor_uid: body.sensor_uid,
       sensor_type: body.sensor_type,
       name: body.name || null,
       pin: body.pin || null,

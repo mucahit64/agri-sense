@@ -4,10 +4,10 @@ import db from '~/server/db/knex'
 export default defineEventHandler(async (event) => {
   const body = await readBody<SensorPayload>(event)
 
-  if (!body.device_uid || !body.sensor_type || body.value === undefined) {
+  if (!body.device_uid || !body.sensor_uid || body.value === undefined) {
     throw createError({
       statusCode: 400,
-      message: 'Cihaz UID, sensör tipi ve değer gerekli',
+      message: 'Cihaz UID, sensör UID ve değer gerekli',
     })
   }
 
@@ -31,15 +31,13 @@ export default defineEventHandler(async (event) => {
 
     // Sensörü bul veya oluştur
     let sensor = await db('sensors')
-      .where({
-        device_id: device.id,
-        sensor_type: body.sensor_type,
-      })
+      .where({ sensor_uid: body.sensor_uid })
       .first()
 
     if (!sensor) {
       const [sensorId] = await db('sensors').insert({
         device_id: device.id,
+        sensor_uid: body.sensor_uid,
         sensor_type: body.sensor_type,
       })
       sensor = await db('sensors').where({ id: sensorId }).first()
