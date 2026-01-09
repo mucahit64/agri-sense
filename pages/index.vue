@@ -60,7 +60,7 @@ function submitContact() {
 </script>
 
 <template>
-  <q-layout view="hHh lpR fFf">
+  <q-layout view="hHh lpR fFf" class="select-none">
     <!-- HEADER -->
     <q-header
       elevated
@@ -139,6 +139,7 @@ function submitContact() {
                   color="green-8"
                   label="Ücretsiz Dene"
                   size="lg"
+                  @click="() => $router.push('/auth/register')"
                 />
                 <q-btn
                   outline
@@ -558,5 +559,9 @@ function submitContact() {
 .contact-form {
   border-radius: 16px;
   padding: 16px;
+}
+
+.select-none {
+  user-select: none !important;
 }
 </style>
