@@ -50,12 +50,14 @@ const latestValue = computed(() => {
   return readings.value[0]?.value ?? null
 })
 
-const avgValue = computed(() => {
-  if (readings.value.length === 0)
-    return null
-  const sum = readings.value.reduce((acc, r) => acc + r.value, 0)
-  return (sum / readings.value.length).toFixed(2)
-})
+const avgValue = computed(() =>
+  readings.value.length
+    ? (
+        readings.value.reduce((a, r) => a + Number(r.value), 0)
+        / readings.value.length
+      ).toFixed(2)
+    : null,
+)
 
 const minValue = computed(() => {
   if (readings.value.length === 0)
