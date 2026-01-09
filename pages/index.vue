@@ -262,8 +262,8 @@ function submitContact() {
                 flat
                 class="how-card"
               >
-                <div class="step-circle q-mb-md">
-                  <span>{{ i + 1 }}</span>
+                <div class="q-mb-md">
+                  <span class="step-circle">{{ i + 1 }}</span>
                 </div>
                 <q-icon
                   :name="step.icon"
