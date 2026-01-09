@@ -4,6 +4,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['nuxt-quasar-ui', '@nuxthub/core'],
 
+  runtimeConfig: {
+    dbHost: 'localhost',
+    dbUser: 'admin',
+    dbPort: 3306,
+    dbPassword: 'admin123',
+    dbName: 'agrisense',
+  },
+
   quasar: {
     plugins: [
       'Dialog',
