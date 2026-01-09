@@ -57,6 +57,13 @@ function submitContact() {
   // eslint-disable-next-line no-console
   console.log('Contact form submitted:', contactForm.value)
 }
+
+function scrollToSection(id: string) {
+  const el = document.querySelector(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
+  }
+}
 </script>
 
 <template>
@@ -67,7 +74,10 @@ function submitContact() {
       class="bg-white text-grey-9"
     >
       <q-toolbar class="q-px-xl q-py-sm">
-        <q-toolbar-title class="row items-center text-weight-bold text-green-8">
+        <q-toolbar-title
+          class="row items-center text-weight-bold text-green-8"
+          @click="() => scrollToSection('#top')"
+        >
           <q-icon
             name="eco"
             size="28px"
@@ -81,17 +91,17 @@ function submitContact() {
         <q-btn
           flat
           label="Özellikler"
-          to="#features"
+          @click="() => scrollToSection('#features')"
         />
         <q-btn
           flat
           label="Nasıl Çalışır"
-          to="#how"
+          @click="() => scrollToSection('#how')"
         />
         <q-btn
           flat
           label="İletişim"
-          to="#contact"
+          @click="() => scrollToSection('#contact')"
         />
 
         <q-separator
@@ -119,7 +129,10 @@ function submitContact() {
     <q-page-container>
       <q-page>
         <!-- HERO -->
-        <section class="hero">
+        <section
+          id="top"
+          class="hero"
+        >
           <div class="content row items-center">
             <div class="col-12 col-md-6 q-pr-xl">
               <div class="text-overline text-green-7">
@@ -297,6 +310,7 @@ function submitContact() {
             size="lg"
             label="Hemen Başla"
             class="q-mt-lg"
+            @click="() => $router.push('/auth/register')"
           />
         </section>
 
@@ -563,5 +577,9 @@ function submitContact() {
 
 .select-none {
   user-select: none !important;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 </style>
