@@ -50,6 +50,7 @@ export default defineEventHandler(async (event) => {
       sensor_id: sensor.id,
       value: body.value,
       recorded_at: recordedAt,
+      created_at: new Date(),
     })
 
     return {
