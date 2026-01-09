@@ -3,8 +3,6 @@ import db from '~/server/db/knex'
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ id: number, date: string }>(event)
 
-  console.log('Received test update payload:', body)
-
   if (body.id === null || !body.date) {
     throw createError({
       statusCode: 400,
