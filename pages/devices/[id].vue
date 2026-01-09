@@ -134,7 +134,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-layout view="hHh lpR fFf">
+  <q-layout view="hHh lpR fFf" class="select-none">
     <q-header elevated class="bg-green-8">
       <q-toolbar>
         <q-btn flat round dense icon="arrow_back" @click="router.push('/devices')" />
@@ -323,3 +323,9 @@ onMounted(() => {
     </q-page-container>
   </q-layout>
 </template>
+
+<style scoped>
+  .select-none {
+  user-select: none !important;
+}
+</style>

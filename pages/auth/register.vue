@@ -27,7 +27,7 @@ async function handleRegister() {
 </script>
 
 <template>
-  <q-layout view="hHh lpR fFf">
+  <q-layout view="hHh lpR fFf" class="select-none">
     <q-page-container>
       <q-page class="flex flex-center bg-grey-1">
         <q-card style="width: 400px; max-width: 90vw">
@@ -121,3 +121,9 @@ async function handleRegister() {
     </q-page-container>
   </q-layout>
 </template>
+
+<style scoped>
+  .select-none {
+  user-select: none !important;
+}
+</style>
