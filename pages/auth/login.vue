@@ -79,9 +79,13 @@ async function handleLogin() {
                 :loading="loading"
               />
 
-              <div class="text-center q-mt-md">
-                <nuxt-link to="/auth/register" class="text-green-8">
+              <div class="text-center q-mt-md column items-center">
+                <nuxt-link to="/auth/register" class="text-green-8 q-mb-sm">
                   Hesabınız yok mu? Kayıt olun
+                </nuxt-link>
+
+                <nuxt-link to="/" class="text-green-8">
+                  Ana sayfaya dön
                 </nuxt-link>
               </div>
             </q-form>
