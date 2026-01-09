@@ -2,7 +2,7 @@
   "name": "agri-sense",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@9.15.5+sha512.845196026aab1cc3f098a0474b64dfbab2afe7a1b4e91dd86895d8e4aa32a7a6d03049e2d0ad770bbe4de023a7122fb68c1a1d6e0d033c7076085f9d5d4800d4",
+  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -13,6 +13,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@nuxthub/core": "0.10.4",
     "@quasar/extras": "^1",
     "knex": "^3.1.0",
     "mysql2": "^3.16.0",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^6.6.1",
     "eslint": "^9.39.2",
-    "eslint-plugin-format": "^1.1.0"
+    "eslint-plugin-format": "^1.1.0",
+    "wrangler": "^4.54.0"
   }
 }

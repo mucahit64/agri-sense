@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['nuxt-quasar-ui'],
+  modules: ['nuxt-quasar-ui', '@nuxthub/core'],
 
   quasar: {
     plugins: [
