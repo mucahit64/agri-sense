@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   try {
     const updatedRows = await db('test')
       .where({ id: body.id })
-      .update({ test_date: new Date(body.date) })
+      .update({ date: new Date(body.date) })
 
     return {
       success: true,
