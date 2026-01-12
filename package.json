@@ -13,7 +13,6 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@nuxthub/core": "0.10.4",
     "@quasar/extras": "^1",
     "knex": "^3.1.0",
     "mysql2": "^3.16.0",

@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['nuxt-quasar-ui', '@nuxthub/core'],
+  modules: ['nuxt-quasar-ui'],
 
   runtimeConfig: {
     dbHost: 'localhost',
