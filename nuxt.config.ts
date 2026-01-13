@@ -13,6 +13,7 @@ export default defineNuxtConfig({
     dbPassword: 'admin123',
     dbName: 'agrisense',
     sessionSecret: '',
+    openWeatherApiKey: '',
   },
 
   quasar: {

@@ -8,6 +8,9 @@ const stats = ref({
   readings: 0,
 })
 
+const weather = ref<any>(null)
+const weatherLoading = ref(false)
+
 const payloadExample = `{
   "device_uid": "ARDUINO_001",
   "sensor_uid": "SENSOR_001",
@@ -21,6 +24,7 @@ onMounted(async () => {
   }
   else {
     loadStats()
+    loadWeather()
   }
 })
 
@@ -39,6 +43,20 @@ async function loadStats() {
   }
   catch (error) {
     console.error('İstatistikler yüklenemedi:', error)
+  }
+}
+
+async function loadWeather() {
+  weatherLoading.value = true
+  try {
+    const response = await $fetch('/api/weather')
+    weather.value = response.weather
+  }
+  catch (error) {
+    console.error('Hava durumu yüklenemedi:', error)
+  }
+  finally {
+    weatherLoading.value = false
   }
 }
 
@@ -160,6 +178,55 @@ async function handleLogout() {
           </div>
 
           <div class="col-12 col-md-6">
+            <q-card>
+              <q-card-section>
+                <div class="text-h6 q-mb-md">
+                  <q-icon name="wb_sunny" class="q-mr-sm" />
+                  Hava Durumu (24 Saat)
+                </div>
+
+                <div v-if="weatherLoading" class="text-center q-py-md">
+                  <q-spinner color="primary" size="40px" />
+                </div>
+
+                <div v-else-if="weather && weather.list" class="q-gutter-sm">
+                  <div class="row q-col-gutter-sm">
+                    <div
+                      v-for="(item, index) in weather.list"
+                      :key="index"
+                      class="col-3"
+                    >
+                      <q-card flat bordered class="text-center">
+                        <q-card-section class="q-pa-sm">
+                          <div class="text-caption text-grey-7">
+                            {{ new Date(item.dt * 1000).getHours() }}:00
+                          </div>
+                          <q-icon
+                            :name="`img:https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`"
+                            size="32px"
+                          />
+                          <div class="text-weight-bold">
+                            {{ Math.round(item.main.temp) }}°C
+                          </div>
+                          <div class="text-caption text-grey-6">
+                            {{ item.weather[0].description }}
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="text-center text-grey-6 q-py-md">
+                  Hava durumu bilgisi yüklenemedi
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <div class="row q-col-gutter-md q-mt-md">
+          <div class="col-12">
             <q-card>
               <q-card-section>
                 <div class="text-h6 q-mb-sm">
