@@ -2,8 +2,9 @@ import type { DeviceCreate } from '~/types'
 import db from '~/server/db/knex'
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
   const session = await useSession(event, {
-    password: process.env.SESSION_SECRET!,
+    password: config.sessionSecret,
   })
 
   const userId = session.data.userId

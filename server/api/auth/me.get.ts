@@ -1,6 +1,7 @@
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
   const session = await useSession(event, {
-    password: process.env.SESSION_SECRET || 'REDACTED_SECRET',
+    password: config.sessionSecret,
   })
 
   const userData = session.data
