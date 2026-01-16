@@ -21,6 +21,19 @@ const readings = ref<Reading[]>([])
 const loading = ref(true)
 const limit = ref(50)
 
+const sensorTypes = [
+  { value: 'temperature', label: 'Sıcaklık', icon: 'thermostat' },
+  { value: 'humidity', label: 'Nem', icon: 'water_drop' },
+  { value: 'soil_moisture', label: 'Toprak Nemi', icon: 'opacity' },
+  { value: 'ph', label: 'pH', icon: 'science' },
+  { value: 'light', label: 'Işık', icon: 'wb_sunny' },
+  { value: 'pressure', label: 'Basınç', icon: 'compress' },
+]
+
+function getSensorLabel(type: string) {
+  return sensorTypes.find(t => t.value === type)?.label || type
+}
+
 async function loadSensor() {
   try {
     const response = await $fetch<{ success: boolean, sensors: Sensor[] }>(`/api/sensors?sensor_id=${sensorId}`)
@@ -146,7 +159,7 @@ onMounted(() => {
                   Tip
                 </div>
                 <div class="text-body2">
-                  {{ sensor.sensor_type }}
+                  {{ getSensorLabel(sensor.sensor_type) }}
                 </div>
               </div>
               <div class="col-6 col-md-3">
