@@ -114,8 +114,13 @@ async function handleLogout() {
   <q-layout view="hHh lpR fFf" class="select-none">
     <q-header elevated class="bg-green-8">
       <q-toolbar>
-        <q-toolbar-title>
-          <q-icon name="eco" size="28px" class="q-mr-sm" />
+        <q-toolbar-title class="flex row items-center">
+          <img
+            src="/agri-sense-white.png"
+            alt="AgriSense Logo"
+            height="42px"
+            class="q-mr-sm"
+          >
           AgriSense Dashboard
         </q-toolbar-title>
 

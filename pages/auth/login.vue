@@ -30,8 +30,12 @@ async function handleLogin() {
       <q-page class="flex flex-center bg-grey-1">
         <q-card style="width: 400px; max-width: 90vw">
           <q-card-section class="bg-green-8 text-white text-center">
-            <div class="text-h5 text-weight-bold">
-              <q-icon name="eco" size="32px" class="q-mr-sm" />
+            <div class="flex row items-center justify-center text-h5 text-weight-bold">
+              <img
+                src="/agri-sense-white.png"
+                alt="AgriSense Logo"
+                height="42px"
+              >
               AgriSense
             </div>
             <div class="text-subtitle2 q-mt-sm">

@@ -111,8 +111,12 @@ onMounted(() => {
     <q-header elevated class="bg-green-8">
       <q-toolbar>
         <q-btn flat round dense icon="arrow_back" @click="router.back()" />
-        <q-toolbar-title>
-          <q-icon name="eco" size="28px" class="q-mr-sm" />
+        <q-toolbar-title class="flex row items-center">
+          <img
+            src="/agri-sense-white.png"
+            alt="AgriSense Logo"
+            height="42px"
+          >
           Sensör Verileri
         </q-toolbar-title>
 

@@ -78,11 +78,12 @@ function scrollToSection(id: string) {
           class="row items-center text-weight-bold text-green-8"
           @click="() => scrollToSection('#top')"
         >
-          <q-icon
-            name="eco"
-            size="28px"
+          <img
+            src="/agri-sense-logo.png"
+            alt="AgriSense Logo"
+            height="42px"
             class="q-mr-sm"
-          />
+          >
           AgriSense
         </q-toolbar-title>
 
