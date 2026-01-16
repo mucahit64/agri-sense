@@ -133,10 +133,12 @@ onMounted(() => {
           />
         </div>
 
+        <!-- Loading State / No Devices / Device List -->
         <div v-if="loading" class="text-center q-pa-xl">
           <q-spinner size="50px" color="green-8" />
         </div>
 
+        <!-- No Devices State -->
         <div v-else-if="devices.length === 0" class="text-center q-pa-xl">
           <q-icon name="devices" size="80px" color="grey-5" />
           <div class="text-h6 text-grey-7 q-mt-md">
@@ -151,6 +153,7 @@ onMounted(() => {
           />
         </div>
 
+        <!-- Device List -->
         <div v-else class="row q-col-gutter-md">
           <div v-for="device in devices" :key="device.id" class="col-12 col-md-4">
             <q-card>

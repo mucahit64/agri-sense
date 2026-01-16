@@ -45,6 +45,8 @@ export default defineEventHandler(async (event) => {
       name: body.name || null,
       pin: body.pin || null,
       unit: body.unit || null,
+      min_value: body.min_value || null,
+      max_value: body.max_value || null,
     })
 
     const sensor = await db('sensors').where({ id: sensorId }).first()

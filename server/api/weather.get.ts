@@ -1,3 +1,5 @@
+import type { WeatherForecastResponse } from '~/types'
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const query = getQuery(event)
@@ -16,7 +18,7 @@ export default defineEventHandler(async (event) => {
   try {
     const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=tr&cnt=8`
 
-    const response = await $fetch(weatherUrl)
+    const response = await $fetch<WeatherForecastResponse>(weatherUrl)
 
     return {
       success: true,

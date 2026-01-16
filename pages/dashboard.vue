@@ -11,6 +11,9 @@ const stats = ref({
 const weather = ref<any>(null)
 const weatherLoading = ref(false)
 
+const irrigationAI = ref<any>(null)
+const irrigationAILoading = ref(false)
+
 const payloadExample = `{
   "device_uid": "ARDUINO_001",
   "sensor_uid": "SENSOR_001",
@@ -25,6 +28,7 @@ onMounted(async () => {
   else {
     loadStats()
     loadWeather()
+    loadIrrigationAI()
   }
 })
 
@@ -33,7 +37,7 @@ async function loadStats() {
     const [devicesRes, sensorsRes, readingsRes] = await Promise.all([
       $fetch('/api/devices'),
       $fetch('/api/sensors'),
-      $fetch('/api/readings?limit=1'),
+      $fetch('/api/readings'), // ?limit=1
     ])
     stats.value = {
       devices: devicesRes.devices?.length || 0,
@@ -60,10 +64,50 @@ async function loadWeather() {
   }
 }
 
+async function loadIrrigationAI() {
+  irrigationAILoading.value = true
+  try {
+    const response = await $fetch('/api/irrigation-ai')
+    irrigationAI.value = response
+  }
+  catch (error) {
+    console.error('AI sulama önerisi yüklenemedi:', error)
+    irrigationAI.value = null
+  }
+  finally {
+    irrigationAILoading.value = false
+  }
+}
+
 async function handleLogout() {
   await logout()
   router.push('/')
 }
+
+// async function loadIrrigationAI() {
+//   irrigationAILoading.value = true
+//   try {
+//     // TEST: Gerçek API yerine sahte cevap
+//     await new Promise(resolve => setTimeout(resolve, 1000)) // loading efekti için
+//     irrigationAI.value = {
+//       answer: 'Bugün tarlayı sulamanıza gerek yok. Toprak nemi yeterli ve yağış bekleniyor.',
+//       soilMoisture: 68,
+//       weather: {
+//         temp: 23,
+//         humidity: 60,
+//         description: 'parçalı bulutlu',
+//         rainProbability: 70,
+//       },
+//     }
+//   }
+//   catch (error) {
+//     console.error('AI sulama önerisi yüklenemedi:', error)
+//     irrigationAI.value = null
+//   }
+//   finally {
+//     irrigationAILoading.value = false
+//   }
+// }
 </script>
 
 <template>
@@ -104,7 +148,104 @@ async function handleLogout() {
           </q-card>
         </div>
 
+        <!-- AI Sulama Önerisi -->
         <div class="row q-col-gutter-md q-mb-md">
+          <div class="col-12">
+            <q-card>
+              <q-card-section>
+                <div class="text-h6 q-pb-md">
+                  <q-icon name="psychology" class="q-mr-sm" color="purple" />
+                  Bugün Tarlamı Sulamalı Mıyım?
+                </div>
+
+                <div v-if="irrigationAILoading" class="text-center q-py-md">
+                  <q-spinner color="primary" size="40px" />
+                  <div class="text-grey-7 q-mt-md">
+                    AI önerisi hazırlanıyor...
+                  </div>
+                </div>
+
+                <div v-else-if="irrigationAI" class="q-gutter-md">
+                  <q-card flat bordered class="bg-blue-1">
+                    <q-card-section>
+                      <div class="text-body1">
+                        <q-icon name="auto_awesome" color="blue" size="20px" />
+                        <span class="text-weight-bold q-ml-sm">AI Önerisi:</span>
+                      </div>
+                      <div class="text-body1 q-mt-sm">
+                        {{ irrigationAI.answer }}
+                      </div>
+                    </q-card-section>
+                  </q-card>
+
+                  <div class="row q-col-gutter-sm">
+                    <div class="col-6 col-md-3">
+                      <q-card flat bordered>
+                        <q-card-section class="text-center">
+                          <q-icon name="water_drop" size="32px" color="blue" />
+                          <div class="text-caption text-grey-7 q-mt-sm">
+                            Toprak Nemi
+                          </div>
+                          <div class="text-h6 text-weight-bold">
+                            %{{ irrigationAI.soilMoisture }}
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <q-card flat bordered>
+                        <q-card-section class="text-center">
+                          <q-icon name="thermostat" size="32px" color="orange" />
+                          <div class="text-caption text-grey-7 q-mt-sm">
+                            Sıcaklık
+                          </div>
+                          <div class="text-h6 text-weight-bold">
+                            {{ irrigationAI.weather.temp }}°C
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <q-card flat bordered>
+                        <q-card-section class="text-center">
+                          <q-icon name="opacity" size="32px" color="cyan" />
+                          <div class="text-caption text-grey-7 q-mt-sm">
+                            Hava Nemi
+                          </div>
+                          <div class="text-h6 text-weight-bold">
+                            %{{ irrigationAI.weather.humidity }}
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <q-card flat bordered>
+                        <q-card-section class="text-center">
+                          <q-icon name="grain" size="32px" color="blue-grey" />
+                          <div class="text-caption text-grey-7 q-mt-sm">
+                            Yağış Olasılığı
+                          </div>
+                          <div class="text-h6 text-weight-bold">
+                            %{{ irrigationAI.weather.rainProbability }}
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="text-center text-grey-6 q-py-md">
+                  <q-icon name="error_outline" size="48px" />
+                  <div class="q-mt-sm">
+                    AI önerisi alınamadı
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <div class="row q-col-gutter-md q-pb-md">
           <div class="col-12 col-md-4">
             <q-card class="cursor-pointer" @click="router.push('/devices')">
               <q-card-section class="text-center">
@@ -134,7 +275,7 @@ async function handleLogout() {
           </div>
 
           <div class="col-12 col-md-4">
-            <q-card>
+            <q-card class="cursor-pointer" @click="router.push('/sensors')">
               <q-card-section class="text-center">
                 <q-icon name="analytics" size="48px" color="orange" />
                 <div class="text-h4 q-mt-md text-weight-bold">
@@ -172,13 +313,21 @@ async function handleLogout() {
                       <q-item-label>Tüm Sensörler</q-item-label>
                     </q-item-section>
                   </q-item>
+                  <q-item clickable to="/weather">
+                    <q-item-section avatar>
+                      <q-icon name="wb_sunny" color="orange" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Hava Durumunu Gör</q-item-label>
+                    </q-item-section>
+                  </q-item>
                 </q-list>
               </q-card-section>
             </q-card>
           </div>
 
           <div class="col-12 col-md-6">
-            <q-card>
+            <q-card class="cursor-pointer" @click="router.push('/weather')">
               <q-card-section>
                 <div class="text-h6 q-mb-md">
                   <q-icon name="wb_sunny" class="q-mr-sm" />

@@ -16,9 +16,20 @@ const router = useRouter()
 const { user, logout } = useAuth()
 
 const sensorId = route.params.id as string
+const sensor = ref<Sensor | null>(null)
 const readings = ref<Reading[]>([])
 const loading = ref(true)
 const limit = ref(50)
+
+async function loadSensor() {
+  try {
+    const response = await $fetch<{ success: boolean, sensors: Sensor[] }>(`/api/sensors?sensor_id=${sensorId}`)
+    sensor.value = response.sensors[0] || null
+  }
+  catch (error) {
+    console.error('Sensör yüklenemedi:', error)
+  }
+}
 
 async function loadReadings() {
   try {
@@ -71,7 +82,26 @@ const maxValue = computed(() => {
   return Math.max(...readings.value.map(r => r.value))
 })
 
+// Raw sensör değerini % nem olarak çevirir
+function convertToPercentage(rawValue: number, min_value?: number, max_value?: number): number | null {
+  if (rawValue == null)
+    return null
+
+  const minVal = min_value ?? 305 // en ıslak ölçüm
+  const maxVal = max_value ?? 668 // en kuru ölçüm
+
+  if (maxVal > minVal) {
+    // Ters çevirme: kuru (max) -> 0%, ıslak (min) -> 100%
+    const percentage = Math.round(((maxVal - rawValue) / (maxVal - minVal)) * 100)
+    return Math.max(0, Math.min(100, percentage))
+  }
+
+  // maxVal <= minVal ise raw değeri direkt döndür
+  return rawValue
+}
+
 onMounted(() => {
+  loadSensor()
   loadReadings()
 })
 </script>
@@ -100,6 +130,49 @@ onMounted(() => {
 
     <q-page-container>
       <q-page class="q-pa-md">
+        <!-- Sensor Info Card -->
+        <q-card v-if="sensor" class="q-mb-md">
+          <q-card-section>
+            <div class="text-h6">
+              {{ sensor.name || 'Sensör Bilgileri' }}
+            </div>
+            <div class="row q-col-gutter-sm q-mt-sm">
+              <div class="col-6 col-md-3">
+                <div class="text-caption text-grey-7">
+                  Tip
+                </div>
+                <div class="text-body2">
+                  {{ sensor.sensor_type }}
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-caption text-grey-7">
+                  Birim
+                </div>
+                <div class="text-body2">
+                  {{ sensor.unit || '-' }}
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-caption text-grey-7">
+                  Min Değer
+                </div>
+                <div class="text-body2">
+                  {{ sensor.min_value !== null && sensor.min_value !== undefined ? sensor.min_value : '-' }}
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-caption text-grey-7">
+                  Max Değer
+                </div>
+                <div class="text-body2">
+                  {{ sensor.max_value !== null && sensor.max_value !== undefined ? sensor.max_value : '-' }}
+                </div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
         <!-- Stats -->
         <div class="row q-col-gutter-md q-mb-md">
           <div class="col-12 col-md-3">
@@ -198,7 +271,10 @@ onMounted(() => {
                   Tarih/Saat
                 </th>
                 <th class="text-right">
-                  Değer
+                  Ham Değer
+                </th>
+                <th v-if="sensor?.min_value !== null && sensor?.min_value !== undefined && sensor?.max_value !== null && sensor?.max_value !== undefined" class="text-right">
+                  Yüzde (%)
                 </th>
               </tr>
             </thead>
@@ -209,6 +285,9 @@ onMounted(() => {
                 </td>
                 <td class="text-right text-weight-bold">
                   {{ reading.value }}
+                </td>
+                <td v-if="sensor?.min_value !== null && sensor?.min_value !== undefined && sensor?.max_value !== null && sensor?.max_value !== undefined" class="text-right text-weight-bold text-green-8">
+                  {{ convertToPercentage(reading.value, sensor.min_value, sensor.max_value) }}%
                 </td>
               </tr>
             </tbody>

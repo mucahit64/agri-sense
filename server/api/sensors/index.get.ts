@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
 
   const query = getQuery(event)
   const deviceId = query.device_id
+  const sensorId = query.sensor_id
 
   try {
     let sensorsQuery = db('sensors')
@@ -26,6 +27,10 @@ export default defineEventHandler(async (event) => {
 
     if (deviceId) {
       sensorsQuery = sensorsQuery.where('sensors.device_id', deviceId)
+    }
+
+    if (sensorId) {
+      sensorsQuery = sensorsQuery.where('sensors.id', sensorId)
     }
 
     const sensors = await sensorsQuery.orderBy('sensors.created_at', 'desc')

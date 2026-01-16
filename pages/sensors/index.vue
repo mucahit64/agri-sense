@@ -131,6 +131,12 @@ onMounted(() => {
                 <div class="text-caption text-grey-7">
                   Birim: {{ sensor.unit || '-' }}
                 </div>
+                <div class="text-caption text-grey-7">
+                  Min: {{ sensor.min_value !== null && sensor.min_value !== undefined ? sensor.min_value : '-' }}
+                </div>
+                <div class="text-caption text-grey-7">
+                  Max: {{ sensor.max_value !== null && sensor.max_value !== undefined ? sensor.max_value : '-' }}
+                </div>
               </q-card-section>
 
               <q-separator />

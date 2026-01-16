@@ -28,6 +28,8 @@ const newSensor = ref({
   name: '',
   pin: '',
   unit: '',
+  min_value: undefined as number | undefined,
+  max_value: undefined as number | undefined,
 })
 
 const sensorTypes = [
@@ -76,10 +78,12 @@ async function addSensor() {
         name: newSensor.value.name,
         pin: newSensor.value.pin,
         unit: newSensor.value.unit || selectedType?.unit,
+        min_value: newSensor.value.min_value,
+        max_value: newSensor.value.max_value,
       },
     })
     showAddDialog.value = false
-    newSensor.value = { sensor_uid: '', sensor_type: 'temperature', name: '', pin: '', unit: '' }
+    newSensor.value = { sensor_uid: '', sensor_type: 'temperature', name: '', pin: '', unit: '', min_value: undefined, max_value: undefined }
     await loadSensors()
   }
   catch (error: any) {
@@ -234,6 +238,12 @@ onMounted(() => {
                 <div class="text-caption text-grey-7">
                   Birim: {{ sensor.unit || '-' }}
                 </div>
+                <div class="text-caption text-grey-7">
+                  Min: {{ sensor.min_value !== null && sensor.min_value !== undefined ? sensor.min_value : '-' }}
+                </div>
+                <div class="text-caption text-grey-7">
+                  Max: {{ sensor.max_value !== null && sensor.max_value !== undefined ? sensor.max_value : '-' }}
+                </div>
               </q-card-section>
 
               <q-separator />
@@ -305,6 +315,22 @@ onMounted(() => {
                 label="Birim"
                 class="q-mt-md"
                 hint="Otomatik doldurulur"
+              />
+              <q-input
+                v-model.number="newSensor.min_value"
+                outlined
+                type="number"
+                label="Minimum Değer"
+                class="q-mt-md"
+                hint="Sensörün ölçebileceği minimum değer"
+              />
+              <q-input
+                v-model.number="newSensor.max_value"
+                outlined
+                type="number"
+                label="Maksimum Değer"
+                class="q-mt-md"
+                hint="Sensörün ölçebileceği maksimum değer"
               />
             </q-card-section>
 
