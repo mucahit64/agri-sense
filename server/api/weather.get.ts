@@ -4,8 +4,9 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const query = getQuery(event)
 
-  const lat = query.lat || '39.9334' // Ankara default
-  const lon = query.lon || '32.8597'
+  const lat = query.lat || '41.1194'
+  const lon = query.lon || '29.0063'
+
   const apiKey = config.openWeatherApiKey
 
   if (!apiKey) {
