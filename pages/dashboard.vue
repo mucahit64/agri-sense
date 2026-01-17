@@ -83,31 +83,6 @@ async function handleLogout() {
   await logout()
   router.push('/')
 }
-
-// async function loadIrrigationAI() {
-//   irrigationAILoading.value = true
-//   try {
-//     // TEST: Gerçek API yerine sahte cevap
-//     await new Promise(resolve => setTimeout(resolve, 1000)) // loading efekti için
-//     irrigationAI.value = {
-//       answer: 'Bugün tarlayı sulamanıza gerek yok. Toprak nemi yeterli ve yağış bekleniyor.',
-//       soilMoisture: 68,
-//       weather: {
-//         temp: 23,
-//         humidity: 60,
-//         description: 'parçalı bulutlu',
-//         rainProbability: 70,
-//       },
-//     }
-//   }
-//   catch (error) {
-//     console.error('AI sulama önerisi yüklenemedi:', error)
-//     irrigationAI.value = null
-//   }
-//   finally {
-//     irrigationAILoading.value = false
-//   }
-// }
 </script>
 
 <template>

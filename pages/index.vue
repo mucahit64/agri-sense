@@ -32,11 +32,14 @@ const features = [
   },
 ]
 
+const statsSection = ref<HTMLElement | null>(null)
+const hasAnimated = ref(false)
+
 const stats = [
-  { icon: 'group', value: '10K+', label: 'Aktif Kullanıcı' },
-  { icon: 'sensors', value: '50K+', label: 'Bağlı Sensör' },
-  { icon: 'landscape', value: '25K+', label: 'Hektar Arazi' },
-  { icon: 'trending_up', value: '%40', label: 'Verimlilik Artışı' },
+  { icon: 'group', value: 10000, suffix: '+', label: 'Aktif Kullanıcı' },
+  { icon: 'sensors', value: 50000, suffix: '+', label: 'Bağlı Sensör' },
+  { icon: 'landscape', value: 25000, suffix: '+', label: 'Hektar Arazi' },
+  { icon: 'trending_up', value: 40, suffix: '%', label: 'Verimlilik Artışı' },
 ]
 
 const steps = [
@@ -54,8 +57,6 @@ const contactForm = ref({
 
 function submitContact() {
   // TODO: Implement contact form submission
-  // eslint-disable-next-line no-console
-  console.log('Contact form submitted:', contactForm.value)
 }
 
 function scrollToSection(id: string) {
@@ -64,6 +65,61 @@ function scrollToSection(id: string) {
     el.scrollIntoView({ behavior: 'smooth' })
   }
 }
+
+const animatedStats = stats.map((stat) => {
+  const startValue = Math.max(stat.value - 10, 0)
+
+  return {
+    ...stat,
+    current: ref(startValue),
+    startValue,
+  }
+})
+
+function startAnimation() {
+  if (hasAnimated.value)
+    return
+  hasAnimated.value = true
+
+  animatedStats.forEach((stat) => {
+    const duration = 3000
+    const startTime = performance.now()
+
+    const animate = (time: number) => {
+      const progress = Math.min((time - startTime) / duration, 1)
+      const value
+        = stat.startValue
+          + progress * (stat.value - stat.startValue)
+
+      stat.current.value = Math.floor(value)
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      }
+    }
+
+    requestAnimationFrame(animate)
+  })
+}
+
+onMounted(() => {
+  if (!statsSection.value)
+    return
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry?.isIntersecting) {
+        startAnimation()
+        observer.disconnect()
+      }
+    },
+    {
+      threshold: 0.4, // %40 görünce başlasın (ideal)
+    },
+  )
+
+  observer.observe(statsSection.value)
+})
 </script>
 
 <template>
@@ -153,13 +209,8 @@ function scrollToSection(id: string) {
                   color="green-8"
                   label="Ücretsiz Dene"
                   size="lg"
+                  icon=" arrow_forward"
                   @click="() => $router.push('/auth/register')"
-                />
-                <q-btn
-                  outline
-                  color="green-8"
-                  label="Demo İzle"
-                  size="lg"
                 />
               </div>
             </div>
@@ -201,7 +252,7 @@ function scrollToSection(id: string) {
         <!-- FEATURES -->
         <section
           id="features"
-          class="section"
+          class="section bg-grey-2"
         >
           <h2 class="section-title">
             Neden AgriSense?
@@ -214,7 +265,6 @@ function scrollToSection(id: string) {
             >
               <q-card
                 flat
-                bordered
                 class="feature"
               >
                 <q-icon
@@ -234,22 +284,23 @@ function scrollToSection(id: string) {
         </section>
 
         <!-- STATS SECTION -->
-        <section class="stats-section">
+        <section
+          ref="statsSection"
+          class="stats-section"
+        >
           <div class="row text-center">
             <div
-              v-for="(stat, index) in stats"
+              v-for="(stat, index) in animatedStats"
               :key="index"
               class="col-12 col-md-3"
             >
               <div class="stat-item">
-                <q-icon
-                  :name="stat.icon"
-                  size="56px"
-                  class="q-mb-md"
-                />
+                <q-icon :name="stat.icon" size="56px" class="q-mb-md" />
+
                 <div class="text-h3 text-weight-bold">
-                  {{ stat.value }}
+                  {{ `${stat.current.value}${stat.suffix}` }}
                 </div>
+
                 <div class="text-h6 text-green-2 q-mt-sm">
                   {{ stat.label }}
                 </div>
@@ -261,7 +312,7 @@ function scrollToSection(id: string) {
         <!-- HOW IT WORKS -->
         <section
           id="how"
-          class="section bg-grey-1"
+          class="section bg-grey-2"
         >
           <h2 class="section-title">
             Nasıl Çalışır?
@@ -318,7 +369,7 @@ function scrollToSection(id: string) {
         <!-- CONTACT -->
         <section
           id="contact"
-          class="section"
+          class="section bg-grey-2"
         >
           <h2 class="section-title">
             Bizimle İletişime Geçin
@@ -527,6 +578,13 @@ function scrollToSection(id: string) {
 .how-card {
   padding: 32px;
   border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: 0.3s;
+}
+
+.how-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
 }
 
 .step-circle {
