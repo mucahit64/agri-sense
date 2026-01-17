@@ -128,7 +128,8 @@ onMounted(() => {
           <img
             src="/agri-sense-white.png"
             alt="AgriSense Logo"
-            height="42px"
+            height="32px"
+            class="q-mr-sm"
           >
           Sensör Verileri
         </q-toolbar-title>

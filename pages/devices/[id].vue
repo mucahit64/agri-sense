@@ -146,7 +146,8 @@ onMounted(() => {
           <img
             src="/agri-sense-white.png"
             alt="AgriSense Logo"
-            height="42px"
+            height="32px"
+            class="q-mr-sm"
           >
           {{ device?.device_name || 'Cihaz Detayı' }}
         </q-toolbar-title>

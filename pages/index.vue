@@ -79,9 +79,9 @@ function scrollToSection(id: string) {
           @click="() => scrollToSection('#top')"
         >
           <img
-            src="/agri-sense-logo.png"
+            src="/agri-sense.png"
             alt="AgriSense Logo"
-            height="42px"
+            height="32px"
             class="q-mr-sm"
           >
           AgriSense

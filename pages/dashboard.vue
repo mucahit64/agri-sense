@@ -118,7 +118,7 @@ async function handleLogout() {
           <img
             src="/agri-sense-white.png"
             alt="AgriSense Logo"
-            height="42px"
+            height="32px"
             class="q-mr-sm"
           >
           AgriSense Dashboard

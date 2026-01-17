@@ -101,8 +101,10 @@ onMounted(() => {
         <q-toolbar-title class="flex row items-center">
           <img
             src="/agri-sense-white.png"
+
             alt="AgriSense Logo"
-            height="42px"
+            height="32px"
+            class="q-mr-sm"
           >
           AgriSense - Cihazlarım
         </q-toolbar-title>

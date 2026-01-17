@@ -15,7 +15,7 @@ export default defineNuxtConfig({
         { name: 'description', content: 'Akıllı Tarım ve Sulama Yönetim Sistemi' },
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/agri-sense-logo.png' },
+        { rel: 'icon', type: 'image/x-icon', href: '/agri-sense.png' },
       ],
     },
   },
