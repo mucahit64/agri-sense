@@ -87,29 +87,86 @@ async function handleLogout() {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <q-header elevated class="bg-green-8">
-      <q-toolbar>
-        <q-toolbar-title class="flex row items-center">
+    <q-header elevated class="bg-green-8 text-white">
+      <q-toolbar class="q-py-md q-pl-lg">
+        <!-- LOGO -->
+        <q-toolbar-title
+          class="row items-center cursor-pointer no-wrap"
+        >
           <img
             src="/agri-sense-white.png"
             alt="AgriSense Logo"
-            height="32px"
+            :height="$q.screen.lt.md ? 28 : 32"
             class="q-mr-sm"
           >
-          AgriSense Dashboard
+
+          <!-- SADECE DESKTOP -->
+          <span class="gt-sm">
+            AgriSense Dashboard
+          </span>
         </q-toolbar-title>
 
-        <q-btn flat label="Dashboard" />
-        <q-btn flat label="Cihazlar" to="/devices" />
-        <q-btn flat label="Sensörler" to="/sensors" />
+        <!-- DESKTOP MENU -->
+        <div v-if="$q.screen.gt.sm" class="row items-center q-gutter-sm">
+          <q-btn flat label="Dashboard" />
+          <q-btn flat label="Cihazlar" to="/devices" />
+          <q-btn flat label="Sensörler" to="/sensors" />
 
-        <q-space />
+          <q-space />
 
-        <div class="q-mr-md">
-          {{ user?.name }} {{ user?.surname }}
+          <div class="q-mx-md text-weight-medium">
+            {{ user?.name }} {{ user?.surname }}
+          </div>
+
+          <q-btn flat round dense icon="account_circle" />
+          <q-btn flat label="Çıkış" @click="handleLogout" />
         </div>
-        <q-btn flat round dense icon="account_circle" />
-        <q-btn flat label="Çıkış" @click="handleLogout" />
+
+        <!-- MOBILE MENU -->
+        <q-btn
+          v-else
+          flat
+          round
+          dense
+          icon="menu"
+        >
+          <q-menu anchor="bottom right" self="top right">
+            <q-list style="min-width: 220px">
+              <q-item clickable>
+                <q-item-section>
+                  <div class="text-weight-bold">
+                    {{ user?.name }} {{ user?.surname }}
+                  </div>
+                  <div class="text-caption text-grey-6">
+                    {{ user?.email }}
+                  </div>
+                </q-item-section>
+              </q-item>
+
+              <q-separator />
+
+              <q-item clickable>
+                <q-item-section>Dashboard</q-item-section>
+              </q-item>
+
+              <q-item clickable to="/devices">
+                <q-item-section>Cihazlar</q-item-section>
+              </q-item>
+
+              <q-item clickable to="/sensors">
+                <q-item-section>Sensörler</q-item-section>
+              </q-item>
+
+              <q-separator />
+
+              <q-item clickable @click="handleLogout">
+                <q-item-section class="text-negative">
+                  Çıkış
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
       </q-toolbar>
     </q-header>
 

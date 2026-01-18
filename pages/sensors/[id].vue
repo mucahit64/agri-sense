@@ -121,71 +121,160 @@ onMounted(() => {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <q-header elevated class="bg-green-8">
-      <q-toolbar>
-        <q-btn flat round dense icon="arrow_back" @click="router.back()" />
-        <q-toolbar-title class="flex row items-center">
+    <q-header elevated class="bg-green-8 text-white">
+      <q-toolbar :class="$q.screen.lt.md ? 'q-py-sm' : 'q-py-md'" class="q-pl-lg">
+        <!-- BACK -->
+        <q-btn
+          flat
+          round
+          dense
+          icon="arrow_back"
+          class="q-mr-sm"
+          @click="router.back()"
+        />
+
+        <!-- TITLE -->
+        <q-toolbar-title class="row items-center no-wrap">
           <img
             src="/agri-sense-white.png"
             alt="AgriSense Logo"
-            height="32px"
+            :height="$q.screen.lt.md ? 26 : 32"
             class="q-mr-sm"
           >
-          Sensör Verileri
+
+          <!-- SADECE DESKTOP -->
+          <span class="gt-sm">
+            Sensör Verileri
+          </span>
         </q-toolbar-title>
 
-        <q-btn flat label="Dashboard" to="/dashboard" />
-        <q-btn flat label="Cihazlar" to="/devices" />
+        <!-- DESKTOP MENU -->
+        <div v-if="$q.screen.gt.sm" class="row items-center q-gutter-sm">
+          <q-btn flat label="Dashboard" to="/dashboard" />
+          <q-btn flat label="Cihazlar" to="/devices" />
 
-        <q-space />
+          <q-space />
 
-        <div class="q-mr-md">
-          {{ user?.name }} {{ user?.surname }}
+          <div class="q-mx-md text-weight-medium">
+            {{ user?.name }} {{ user?.surname }}
+          </div>
+
+          <q-btn flat label="Çıkış" @click="handleLogout" />
         </div>
-        <q-btn flat label="Çıkış" @click="handleLogout" />
+
+        <!-- MOBILE MENU -->
+        <q-btn
+          v-else
+          flat
+          round
+          dense
+          icon="menu"
+        >
+          <q-menu anchor="bottom right" self="top right">
+            <q-list style="min-width: 220px">
+              <!-- USER -->
+              <q-item>
+                <q-item-section>
+                  <div class="text-weight-bold">
+                    {{ user?.name }} {{ user?.surname }}
+                  </div>
+                  <div class="text-caption text-grey-6">
+                    {{ user?.email }}
+                  </div>
+                </q-item-section>
+              </q-item>
+
+              <q-separator />
+
+              <q-item clickable to="/dashboard">
+                <q-item-section>Dashboard</q-item-section>
+              </q-item>
+
+              <q-item clickable to="/devices">
+                <q-item-section>Cihazlar</q-item-section>
+              </q-item>
+
+              <q-separator />
+
+              <q-item clickable @click="handleLogout">
+                <q-item-section class="text-negative">
+                  Çıkış
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
     <q-page-container>
       <q-page class="q-pa-md">
         <!-- Sensor Info Card -->
-        <q-card v-if="sensor" class="q-mb-md">
+        <q-card v-if="sensor" class="q-mb-md rounded-borders shadow-2">
           <q-card-section>
-            <div class="text-h6">
-              {{ sensor.name || 'Sensör Bilgileri' }}
+            <!-- HEADER -->
+            <div class="row items-center q-mb-md">
+              <q-icon
+                name="sensors"
+                size="28px"
+                color="green-8"
+                class="q-mr-sm"
+              />
+              <div class="text-h6 text-weight-bold">
+                {{ sensor.name || 'Sensör Bilgileri' }}
+              </div>
             </div>
-            <div class="row q-col-gutter-sm q-mt-sm">
+
+            <q-separator />
+
+            <!-- CONTENT -->
+            <div class="row q-col-gutter-md q-mt-md">
+              <!-- TIP -->
               <div class="col-6 col-md-3">
-                <div class="text-caption text-grey-7">
-                  Tip
-                </div>
-                <div class="text-body2">
-                  {{ getSensorLabel(sensor.sensor_type) }}
-                </div>
+                <q-card flat bordered class="q-pa-sm text-center">
+                  <div class="text-caption text-grey-7">
+                    Tip
+                  </div>
+                  <div class="text-body1 text-weight-medium">
+                    {{ getSensorLabel(sensor.sensor_type) }}
+                  </div>
+                </q-card>
               </div>
+
+              <!-- BIRIM -->
               <div class="col-6 col-md-3">
-                <div class="text-caption text-grey-7">
-                  Birim
-                </div>
-                <div class="text-body2">
-                  {{ sensor.unit || '-' }}
-                </div>
+                <q-card flat bordered class="q-pa-sm text-center">
+                  <div class="text-caption text-grey-7">
+                    Birim
+                  </div>
+                  <div class="text-body1 text-weight-medium">
+                    {{ sensor.unit || '-' }}
+                  </div>
+                </q-card>
               </div>
+
+              <!-- MIN -->
               <div class="col-6 col-md-3">
-                <div class="text-caption text-grey-7">
-                  Min Değer
-                </div>
-                <div class="text-body2">
-                  {{ sensor.min_value !== null && sensor.min_value !== undefined ? sensor.min_value : '-' }}
-                </div>
+                <q-card flat bordered class="q-pa-sm text-center">
+                  <div class="text-caption text-grey-7">
+                    Min Değer
+                  </div>
+                  <div class="text-body1 text-weight-medium">
+                    {{ sensor.min_value ?? '-' }}
+                  </div>
+                </q-card>
               </div>
+
+              <!-- MAX -->
               <div class="col-6 col-md-3">
-                <div class="text-caption text-grey-7">
-                  Max Değer
-                </div>
-                <div class="text-body2">
-                  {{ sensor.max_value !== null && sensor.max_value !== undefined ? sensor.max_value : '-' }}
-                </div>
+                <q-card flat bordered class="q-pa-sm text-center">
+                  <div class="text-caption text-grey-7">
+                    Max Değer
+                  </div>
+                  <div class="text-body1 text-weight-medium">
+                    {{ sensor.max_value ?? '-' }}
+                  </div>
+                </q-card>
               </div>
             </div>
           </q-card-section>
