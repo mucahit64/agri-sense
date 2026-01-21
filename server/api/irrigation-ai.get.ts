@@ -9,7 +9,7 @@ export default defineEventHandler(async () => {
 
     // Önce bugün için kayıt var mı kontrol et
     const existingRecommendation = await db('ai_recommendations')
-      .where('recommendation_date', today)
+      .orderBy('id', 'desc')
       .first()
 
     if (existingRecommendation) {
