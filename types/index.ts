@@ -97,18 +97,6 @@ export interface WeatherForecastItem {
   dt_txt: string
 }
 
-export interface WeatherForecastItem {
-  dt: number
-  main: MainWeather
-  weather: WeatherDescription[]
-  clouds: Clouds
-  wind: Wind
-  visibility: number
-  pop: number
-  sys: Sys
-  dt_txt: string
-}
-
 export interface MainWeather {
   temp: number
   feels_like: number
