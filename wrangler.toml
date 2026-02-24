@@ -1,0 +1,11 @@
+name = "agri-sense"
+main = "/src/index.ts"
+compatibility_date = "2025-07-15"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "agrisense-db"
+database_id = "56e10fb0-6b3a-46fe-a263-bedce8f48382"
+
+[vars]
+JWT_SECRET = "super-secret-key"
