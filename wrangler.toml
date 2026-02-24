@@ -1,6 +1,7 @@
 name = "agri-sense"
-main = "/src/index.ts"
+main = ".output/server/index.mjs"
 compatibility_date = "2025-07-15"
+assets = { directory = ".output/public/", binding = "ASSETS" }
 
 [[d1_databases]]
 binding = "DB"
