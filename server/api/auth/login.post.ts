@@ -1,7 +1,7 @@
 import type { User } from '~/types'
-import db from '~/server/db/knex'
 
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const { email, password } = await readBody(event)
 
   if (!email || !password) {
@@ -13,9 +13,10 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Kullanıcıyı veritabanından bul
-    const user: User = await db('users')
-      .where({ email })
-      .first()
+    const user = await db
+      .prepare('SELECT * FROM users WHERE email = ?')
+      .bind(email)
+      .first<User>()
 
     if (!user) {
       throw createError({

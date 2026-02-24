@@ -1,40 +1,39 @@
 import type { WeatherForecastResponse } from '~/types'
-import db from '~/server/db/knex'
+import { useDB } from '../utils/db'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const config = useRuntimeConfig()
 
   try {
     const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD formatı
 
     // Önce bugün için kayıt var mı kontrol et
-    const existingRecommendation = await db('ai_recommendations')
-      .orderBy('id', 'desc')
+    const existingRecommendation = await db
+      .prepare('SELECT * FROM ai_recommendations ORDER BY id DESC LIMIT 1')
       .first()
 
     if (existingRecommendation) {
       // Bugün için zaten öneri var, cache'den dön
       return {
         success: true,
-        answer: existingRecommendation.recommendation,
-        soilMoisture: existingRecommendation.soil_moisture,
+        answer: (existingRecommendation as any).recommendation,
+        soilMoisture: (existingRecommendation as any).soil_moisture,
         weather: {
-          temp: existingRecommendation.temperature,
-          humidity: existingRecommendation.humidity,
-          description: existingRecommendation.weather_description,
-          rainProbability: existingRecommendation.rain_probability,
+          temp: (existingRecommendation as any).temperature,
+          humidity: (existingRecommendation as any).humidity,
+          description: (existingRecommendation as any).weather_description,
+          rainProbability: (existingRecommendation as any).rain_probability,
         },
         cached: true,
       }
     }
 
     // Son toprak nemi okuması
-    const latestSoil = await db('readings')
-      .join('sensors', 'readings.sensor_id', 'sensors.id')
-      .where('sensors.sensor_type', 'soil_moisture')
-      .orderBy('readings.recorded_at', 'desc')
-      .select('readings.value', 'sensors.min_value', 'sensors.max_value')
-      .first()
+    const latestSoil = await db
+      .prepare('SELECT readings.value, sensors.min_value, sensors.max_value FROM readings JOIN sensors ON readings.sensor_id = sensors.id WHERE sensors.sensor_type = ? ORDER BY readings.recorded_at DESC LIMIT 1')
+      .bind('soil_moisture')
+      .first<{ value: number, min_value: number | null, max_value: number | null }>()
 
     // Raw değeri yüzdeye çevir
     let soilMoisture = 50 // Varsayılan
@@ -111,16 +110,19 @@ export default defineEventHandler(async () => {
     }
 
     // Yeni öneriyi veritabanına kaydet
-    await db('ai_recommendations').insert({
-      recommendation: answer,
-      soil_moisture: soilMoisture,
-      temperature: weatherData.temp,
-      humidity: weatherData.humidity,
-      weather_description: weatherData.description,
-      rain_probability: weatherData.rainProbability,
-      recommendation_date: today,
-      created_at: new Date(),
-    })
+    await db
+      .prepare('INSERT INTO ai_recommendations (recommendation, soil_moisture, temperature, humidity, weather_description, rain_probability, recommendation_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(
+        answer,
+        soilMoisture,
+        weatherData.temp,
+        weatherData.humidity,
+        weatherData.description,
+        weatherData.rainProbability,
+        today,
+        new Date().toISOString(),
+      )
+      .run()
 
     return {
       success: true,

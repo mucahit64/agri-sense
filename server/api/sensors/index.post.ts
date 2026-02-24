@@ -1,7 +1,8 @@
 import type { SensorCreate } from '~/types'
-import db from '~/server/db/knex'
+import { useDB } from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const config = useRuntimeConfig()
   const session = await useSession(event, {
     password: config.sessionSecret,
@@ -27,8 +28,9 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Cihazın kullanıcıya ait olduğunu kontrol et
-    const device = await db('devices')
-      .where({ id: body.device_id, user_id: userId })
+    const device = await db
+      .prepare('SELECT id FROM devices WHERE id = ? AND user_id = ?')
+      .bind(body.device_id, userId)
       .first()
 
     if (!device) {
@@ -38,18 +40,20 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const [sensorId] = await db('sensors').insert({
-      device_id: body.device_id,
-      sensor_uid: body.sensor_uid,
-      sensor_type: body.sensor_type,
-      name: body.name || null,
-      pin: body.pin || null,
-      unit: body.unit || null,
-      min_value: body.min_value || null,
-      max_value: body.max_value || null,
-    })
-
-    const sensor = await db('sensors').where({ id: sensorId }).first()
+    const sensor = await db
+      .prepare('INSERT INTO sensors (device_id, sensor_uid, sensor_type, name, pin, unit, min_value, max_value, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *')
+      .bind(
+        body.device_id,
+        body.sensor_uid,
+        body.sensor_type,
+        body.name || null,
+        body.pin || null,
+        body.unit || null,
+        body.min_value || null,
+        body.max_value || null,
+        new Date().toISOString(),
+      )
+      .first()
 
     return {
       success: true,

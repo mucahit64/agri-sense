@@ -21,11 +21,6 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    dbHost: 'localhost',
-    dbUser: 'admin',
-    dbPort: 3306,
-    dbPassword: 'admin123',
-    dbName: 'agrisense',
     sessionSecret: '',
     openWeatherApiKey: '',
     openaiApiKey: '',

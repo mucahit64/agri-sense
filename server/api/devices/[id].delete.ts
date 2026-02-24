@@ -1,6 +1,5 @@
-import db from '~/server/db/knex'
-
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const config = useRuntimeConfig()
   const session = await useSession(event, {
     password: config.sessionSecret,
@@ -18,8 +17,9 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
 
   try {
-    const device = await db('devices')
-      .where({ id, user_id: userId })
+    const device = await db
+      .prepare('SELECT * FROM devices WHERE id = ? AND user_id = ?')
+      .bind(id, userId)
       .first()
 
     if (!device) {
@@ -29,7 +29,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    await db('devices').where({ id }).delete()
+    await db
+      .prepare('DELETE FROM devices WHERE id = ?')
+      .bind(id)
+      .run()
 
     return {
       success: true,
