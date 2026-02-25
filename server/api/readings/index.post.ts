@@ -1,7 +1,8 @@
 import type { SensorPayload } from '~/types'
-import db from '~/server/db/knex'
+import { useDB } from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const body = await readBody<SensorPayload>(event)
 
   if (!body.device_uid || !body.sensor_uid || body.value === undefined) {
@@ -13,9 +14,10 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Cihazı bul
-    const device = await db('devices')
-      .where({ device_uid: body.device_uid })
-      .first()
+    const device = await db
+      .prepare('SELECT * FROM devices WHERE device_uid = ?')
+      .bind(body.device_uid)
+      .first<{ id: number }>()
 
     if (!device) {
       throw createError({
@@ -25,37 +27,35 @@ export default defineEventHandler(async (event) => {
     }
 
     // Son görülme zamanını güncelle
-    await db('devices')
-      .where({ id: device.id })
-      .update({ last_seen_at: new Date() })
+    await db
+      .prepare('UPDATE devices SET last_seen_at = ? WHERE id = ?')
+      .bind(new Date().toISOString(), device.id)
+      .run()
 
     // Sensörü bul veya oluştur
-    let sensor = await db('sensors')
-      .where({ sensor_uid: body.sensor_uid })
-      .first()
+    let sensor = await db
+      .prepare('SELECT * FROM sensors WHERE sensor_uid = ?')
+      .bind(body.sensor_uid)
+      .first<{ id: number }>()
 
     if (!sensor) {
-      const [sensorId] = await db('sensors').insert({
-        device_id: device.id,
-        sensor_uid: body.sensor_uid,
-        sensor_type: body.sensor_type,
-      })
-      sensor = await db('sensors').where({ id: sensorId }).first()
+      sensor = await db
+        .prepare('INSERT INTO sensors (device_id, sensor_uid, sensor_type, created_at) VALUES (?, ?, ?, ?) RETURNING *')
+        .bind(device.id, body.sensor_uid, body.sensor_type, new Date().toISOString())
+        .first<{ id: number }>()
     }
 
     // Okuma kaydet
-    const recordedAt = body.recorded_at ? new Date(body.recorded_at) : new Date()
+    const recordedAt = body.recorded_at ? new Date(body.recorded_at).toISOString() : new Date().toISOString()
 
-    const [readingId] = await db('readings').insert({
-      sensor_id: sensor.id,
-      value: body.value,
-      recorded_at: recordedAt,
-      created_at: new Date(),
-    })
+    const result = await db
+      .prepare('INSERT INTO readings (sensor_id, value, recorded_at, created_at) VALUES (?, ?, ?, ?) RETURNING id')
+      .bind(sensor!.id, body.value, recordedAt, new Date().toISOString())
+      .first<{ id: number }>()
 
     return {
       success: true,
-      reading_id: readingId,
+      reading_id: result?.id,
     }
   }
   catch (error: any) {

@@ -1,6 +1,7 @@
-import db from '~/server/db/knex'
+import { useDB } from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const config = useRuntimeConfig()
   const session = await useSession(event, {
     password: config.sessionSecret,
@@ -18,11 +19,9 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
 
   try {
-    const sensor = await db('sensors')
-      .join('devices', 'sensors.device_id', 'devices.id')
-      .where('sensors.id', id)
-      .where('devices.user_id', userId)
-      .select('sensors.*')
+    const sensor = await db
+      .prepare('SELECT sensors.* FROM sensors JOIN devices ON sensors.device_id = devices.id WHERE sensors.id = ? AND devices.user_id = ?')
+      .bind(id, userId)
       .first()
 
     if (!sensor) {
@@ -32,7 +31,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    await db('sensors').where({ id }).delete()
+    await db
+      .prepare('DELETE FROM sensors WHERE id = ?')
+      .bind(id)
+      .run()
 
     return {
       success: true,

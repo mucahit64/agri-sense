@@ -1,6 +1,5 @@
-import db from '~/server/db/knex'
-
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const config = useRuntimeConfig()
   const session = await useSession(event, {
     password: config.sessionSecret,
@@ -16,9 +15,10 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const devices = await db('devices')
-      .where({ user_id: userId })
-      .orderBy('created_at', 'desc')
+    const { results: devices } = await db
+      .prepare('SELECT * FROM devices WHERE user_id = ? ORDER BY created_at DESC')
+      .bind(userId)
+      .all()
 
     return {
       success: true,

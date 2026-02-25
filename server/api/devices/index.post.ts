@@ -1,7 +1,7 @@
 import type { DeviceCreate } from '~/types'
-import db from '~/server/db/knex'
 
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const config = useRuntimeConfig()
   const session = await useSession(event, {
     password: config.sessionSecret,
@@ -27,8 +27,9 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Cihaz zaten kayıtlı mı kontrol et
-    const existing = await db('devices')
-      .where({ device_uid: body.device_uid })
+    const existing = await db
+      .prepare('SELECT id FROM devices WHERE device_uid = ?')
+      .bind(body.device_uid)
       .first()
 
     if (existing) {
@@ -38,14 +39,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const [deviceId] = await db('devices').insert({
-      user_id: userId,
-      device_uid: body.device_uid,
-      device_name: body.device_name || null,
-      is_active: true,
-    })
-
-    const device = await db('devices').where({ id: deviceId }).first()
+    const device = await db
+      .prepare('INSERT INTO devices (user_id, device_uid, device_name, is_active, created_at) VALUES (?, ?, ?, ?, ?) RETURNING *')
+      .bind(userId, body.device_uid, body.device_name || null, 1, new Date().toISOString())
+      .first()
 
     return {
       success: true,

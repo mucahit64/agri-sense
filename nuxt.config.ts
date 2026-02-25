@@ -21,11 +21,6 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    dbHost: 'localhost',
-    dbUser: 'admin',
-    dbPort: 3306,
-    dbPassword: 'admin123',
-    dbName: 'agrisense',
     sessionSecret: '',
     openWeatherApiKey: '',
     openaiApiKey: '',
@@ -36,5 +31,9 @@ export default defineNuxtConfig({
       'Dialog',
       'Notify',
     ],
+  },
+
+  nitro: {
+    preset: 'cloudflare-module',
   },
 })

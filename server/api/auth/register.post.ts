@@ -1,6 +1,5 @@
-import db from '~/server/db/knex'
-
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const { name, surname, email, password } = await readBody(event)
 
   if (!name || !surname || !email || !password) {
@@ -29,8 +28,9 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Email zaten kayıtlı mı kontrol et
-    const existingUser = await db('users')
-      .where({ email })
+    const existingUser = await db
+      .prepare('SELECT id FROM users WHERE email = ?')
+      .bind(email)
       .first()
 
     if (existingUser) {
@@ -41,18 +41,12 @@ export default defineEventHandler(async (event) => {
     }
 
     // Yeni kullanıcı oluştur
-    await db('users').insert({
-      name,
-      surname,
-      email,
-      password, // Production'da hash'lenmiş olmalı!
-      created_at: new Date(),
-    })
+    const result = await db
+      .prepare('INSERT INTO users (name, surname, email, password, created_at) VALUES (?, ?, ?, ?, ?) RETURNING id')
+      .bind(name, surname, email, password, new Date().toISOString())
+      .first<{ id: number }>()
 
-    // SQL Server'da IDENTITY değerini almak için
-    const [newUser] = await db('users')
-      .where({ email })
-      .select('id')
+    const newUserId = result?.id
 
     // Session'a kullanıcıyı kaydet
     const config = useRuntimeConfig()
@@ -61,7 +55,7 @@ export default defineEventHandler(async (event) => {
     })
 
     await session.update({
-      userId: newUser.id,
+      userId: newUserId,
       email,
       name,
       surname,
@@ -70,7 +64,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       user: {
-        id: newUser.id,
+        id: newUserId,
         name,
         surname,
         email,

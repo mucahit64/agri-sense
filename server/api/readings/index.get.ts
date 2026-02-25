@@ -1,6 +1,7 @@
-import db from '~/server/db/knex'
+import { useDB } from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
+  const db = useDB(event)
   const config = useRuntimeConfig()
   const session = await useSession(event, {
     password: config.sessionSecret,
@@ -20,19 +21,21 @@ export default defineEventHandler(async (event) => {
   const limit = Number(query.limit) || 100
 
   try {
-    let readingsQuery = db('readings')
-      .join('sensors', 'readings.sensor_id', 'sensors.id')
-      .join('devices', 'sensors.device_id', 'devices.id')
-      .where('devices.user_id', userId)
-      .select('readings.*')
+    let sql = 'SELECT readings.* FROM readings JOIN sensors ON readings.sensor_id = sensors.id JOIN devices ON sensors.device_id = devices.id WHERE devices.user_id = ?'
+    const params: any[] = [userId]
 
     if (sensorId) {
-      readingsQuery = readingsQuery.where('readings.sensor_id', sensorId)
+      sql += ' AND readings.sensor_id = ?'
+      params.push(sensorId)
     }
 
-    const readings = await readingsQuery
-      .orderBy('readings.recorded_at', 'desc')
-      .limit(limit)
+    sql += ' ORDER BY readings.recorded_at DESC LIMIT ?'
+    params.push(limit)
+
+    const { results: readings } = await db
+      .prepare(sql)
+      .bind(...params)
+      .all()
 
     return {
       success: true,
