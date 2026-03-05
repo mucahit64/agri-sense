@@ -49,10 +49,7 @@ export default defineEventHandler(async (event) => {
     const newUserId = result?.id
 
     // Session'a kullanıcıyı kaydet
-    const config = useRuntimeConfig()
-    const session = await useSession(event, {
-      password: config.sessionSecret,
-    })
+    const session = await useAuthSession(event)
 
     await session.update({
       userId: newUserId,

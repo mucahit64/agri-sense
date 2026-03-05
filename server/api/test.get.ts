@@ -1,9 +1,18 @@
 export default defineEventHandler(async (event) => {
-  const db = event.context.cloudflare.env.DB
+  try {
+    const db = event.context.cloudflare.env.DB
 
-  const { results } = await db
-    .prepare('SELECT * FROM users')
-    .all()
+    if (!db) {
+      return { error: 'D1 database binding bulunamadı', context: Object.keys(event.context.cloudflare?.env || {}) }
+    }
 
-  return results
+    const { results } = await db
+      .prepare('SELECT * FROM users')
+      .all()
+
+    return { success: true, count: results.length, users: results }
+  }
+  catch (error: any) {
+    return { success: false, error: error.message, stack: error.stack }
+  }
 })
