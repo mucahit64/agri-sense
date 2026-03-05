@@ -7,7 +7,7 @@ export async function useAuthSession(event: H3Event<EventHandlerRequest>) {
     name: 'agrisense-session',
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: !import.meta.dev,
       sameSite: 'lax',
     },
   })

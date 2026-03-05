@@ -5,9 +5,16 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     surname TEXT,
-    email TEXT UNIQUE,
-    password TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    username TEXT,
+    mail TEXT UNIQUE,
+    phone TEXT,
+    language TEXT,
+    country TEXT,
+    is_active INTEGER DEFAULT 1,
+    last_login_at TEXT,
+    password_hash TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS devices (

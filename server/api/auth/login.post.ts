@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Kullanıcıyı veritabanından bul
     const user = await db
-      .prepare('SELECT * FROM users WHERE email = ?')
+      .prepare('SELECT * FROM users WHERE mail = ?')
       .bind(email)
       .first<User>()
 
@@ -25,8 +25,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Şifre kontrolü (plain text - production'da hash kullanın!)
-    if (user.password !== password) {
+    // Şifre kontrolü
+    if (user.password_hash !== password) {
       throw createError({
         statusCode: 401,
         message: 'Geçersiz email veya şifre',
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
     await session.update({
       userId: user.id,
-      email: user.email,
+      email: user.mail,
       name: user.name,
       surname: user.surname,
     })
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
         id: user.id,
         name: user.name,
         surname: user.surname,
-        email: user.email,
+        email: user.mail,
       },
     }
   }

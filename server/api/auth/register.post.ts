@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Email zaten kayıtlı mı kontrol et
     const existingUser = await db
-      .prepare('SELECT id FROM users WHERE email = ?')
+      .prepare('SELECT id FROM users WHERE mail = ?')
       .bind(email)
       .first()
 
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
 
     // Yeni kullanıcı oluştur
     const result = await db
-      .prepare('INSERT INTO users (name, surname, email, password, created_at) VALUES (?, ?, ?, ?, ?) RETURNING id')
+      .prepare('INSERT INTO users (name, surname, mail, password_hash, is_active, created_at) VALUES (?, ?, ?, ?, 1, ?) RETURNING id')
       .bind(name, surname, email, password, new Date().toISOString())
       .first<{ id: number }>()
 

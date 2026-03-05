@@ -2,9 +2,16 @@ export interface User {
   id: number
   name: string
   surname: string
-  email: string
-  password: string
-  created_at: Date
+  username: string
+  mail: string
+  phone: string | null
+  language: string | null
+  country: string | null
+  is_active: number
+  last_login_at: string | null
+  password_hash: string
+  created_at: string | null
+  updated_at: string | null
 }
 
 export interface Device {
