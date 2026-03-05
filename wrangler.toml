@@ -9,4 +9,4 @@ database_name = "agrisense-db"
 database_id = "56e10fb0-6b3a-46fe-a263-bedce8f48382"
 
 [vars]
-JWT_SECRET = "super-secret-key"
+JWT_SECRET = "agrisense-super-secret-session-key-2026-min32chars!"
