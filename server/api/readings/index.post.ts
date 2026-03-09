@@ -5,19 +5,19 @@ export default defineEventHandler(async (event) => {
   const db = useDB(event)
   const body = await readBody<SensorPayload>(event)
 
-  if (!body.device_uid || !body.sensor_uid || body.value === undefined) {
+  if (!body.device_name || !body.sensor_name || body.value === undefined) {
     throw createError({
       statusCode: 400,
-      message: 'Cihaz UID, sensör UID ve değer gerekli',
+      message: 'Cihaz adı, sensör adı ve değer gerekli',
     })
   }
 
   try {
     // Cihazı bul
     const device = await db
-      .prepare('SELECT * FROM devices WHERE device_uid = ?')
-      .bind(body.device_uid)
-      .first<{ id: number }>()
+      .prepare('SELECT * FROM devices WHERE name = ?')
+      .bind(body.device_name)
+      .first() as { id: number } | null
 
     if (!device) {
       throw createError({
@@ -26,23 +26,18 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Son görülme zamanını güncelle
-    await db
-      .prepare('UPDATE devices SET last_seen_at = ? WHERE id = ?')
-      .bind(new Date().toISOString(), device.id)
-      .run()
-
     // Sensörü bul veya oluştur
     let sensor = await db
-      .prepare('SELECT * FROM sensors WHERE sensor_uid = ?')
-      .bind(body.sensor_uid)
-      .first<{ id: number }>()
+      .prepare('SELECT * FROM sensors WHERE name = ? AND device_id = ?')
+      .bind(body.sensor_name, device.id)
+      .first() as { id: number } | null
 
     if (!sensor) {
+      const now = new Date().toISOString()
       sensor = await db
-        .prepare('INSERT INTO sensors (device_id, sensor_uid, sensor_type, created_at) VALUES (?, ?, ?, ?) RETURNING *')
-        .bind(device.id, body.sensor_uid, body.sensor_type, new Date().toISOString())
-        .first<{ id: number }>()
+        .prepare('INSERT INTO sensors (device_id, name, type, created_at, updated_at) VALUES (?, ?, ?, ?, ?) RETURNING *')
+        .bind(device.id, body.sensor_name, body.sensor_type, now, now)
+        .first() as { id: number } | null
     }
 
     // Okuma kaydet
@@ -51,7 +46,7 @@ export default defineEventHandler(async (event) => {
     const result = await db
       .prepare('INSERT INTO readings (sensor_id, value, recorded_at, created_at) VALUES (?, ?, ?, ?) RETURNING id')
       .bind(sensor!.id, body.value, recordedAt, new Date().toISOString())
-      .first<{ id: number }>()
+      .first() as { id: number } | null
 
     return {
       success: true,

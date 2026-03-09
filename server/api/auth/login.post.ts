@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     const user = await db
       .prepare('SELECT * FROM users WHERE mail = ?')
       .bind(email)
-      .first<User>()
+      .first() as User | null
 
     if (!user) {
       throw createError({
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Şifre kontrolü
-    if (user.password_hash !== password) {
+    if (String(user.password_hash) !== String(password)) {
       throw createError({
         statusCode: 401,
         message: 'Geçersiz email veya şifre',

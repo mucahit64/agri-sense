@@ -1,128 +1,138 @@
 <script setup lang="ts">
-import type { Reading, Sensor } from '~/types'
+import type { Reading, Sensor } from "~/types";
 
 definePageMeta({
   middleware: async (_to, _from) => {
-    const { checkAuth } = useAuth()
-    const isAuth = await checkAuth()
+    const { checkAuth } = useAuth();
+    const isAuth = await checkAuth();
     if (!isAuth) {
-      return navigateTo('/auth/login')
+      return navigateTo("/auth/login");
     }
   },
-})
+});
 
-const route = useRoute()
-const router = useRouter()
-const { user, logout } = useAuth()
+const route = useRoute();
+const router = useRouter();
+const { user, logout } = useAuth();
 
-const sensorId = route.params.id as string
-const sensor = ref<Sensor | null>(null)
-const readings = ref<Reading[]>([])
-const loading = ref(true)
-const limit = ref(50)
+const sensorId = route.params.id as string;
+const sensor = ref<Sensor | null>(null);
+const readings = ref<Reading[]>([]);
+const loading = ref(true);
+const limit = ref(50);
 
 const sensorTypes = [
-  { value: 'temperature', label: 'Sıcaklık', icon: 'thermostat' },
-  { value: 'humidity', label: 'Nem', icon: 'water_drop' },
-  { value: 'soil_moisture', label: 'Toprak Nemi', icon: 'opacity' },
-  { value: 'ph', label: 'pH', icon: 'science' },
-  { value: 'light', label: 'Işık', icon: 'wb_sunny' },
-  { value: 'pressure', label: 'Basınç', icon: 'compress' },
-]
+  { value: "temperature", label: "Sıcaklık", icon: "thermostat" },
+  { value: "humidity", label: "Nem", icon: "water_drop" },
+  { value: "soil_moisture", label: "Toprak Nemi", icon: "opacity" },
+  { value: "ph", label: "pH", icon: "science" },
+  { value: "light", label: "Işık", icon: "wb_sunny" },
+  { value: "pressure", label: "Basınç", icon: "compress" },
+];
 
 function getSensorLabel(type: string) {
-  return sensorTypes.find(t => t.value === type)?.label || type
+  return sensorTypes.find((t) => t.value === type)?.label || type;
 }
 
 async function loadSensor() {
   try {
-    const response = await $fetch<{ success: boolean, sensors: Sensor[] }>(`/api/sensors?sensor_id=${sensorId}`)
-    sensor.value = response.sensors[0] || null
-  }
-  catch (error) {
-    console.error('Sensör yüklenemedi:', error)
+    const response = await $fetch<{ success: boolean; sensors: Sensor[] }>(
+      `/api/sensors?sensor_id=${sensorId}`,
+    );
+    sensor.value = response.sensors[0] || null;
+  } catch (error) {
+    console.error("Sensör yüklenemedi:", error);
   }
 }
 
 async function loadReadings() {
   try {
-    loading.value = true
-    const response = await $fetch(`/api/readings?sensor_id=${sensorId}&limit=${limit.value}`)
-    readings.value = response.readings
-  }
-  catch (error) {
-    console.error('Okumalar yüklenemedi:', error)
-  }
-  finally {
-    loading.value = false
+    loading.value = true;
+    const response = await $fetch(
+      `/api/readings?sensor_id=${sensorId}&limit=${limit.value}`,
+    );
+    readings.value = response.readings;
+  } catch (error) {
+    console.error("Okumalar yüklenemedi:", error);
+  } finally {
+    loading.value = false;
   }
 }
 
 async function handleLogout() {
-  await logout()
-  router.push('/')
+  await logout();
+  router.push("/");
 }
 
 const _chartData = computed(() => {
-  return readings.value.slice().reverse().map(r => ({
-    time: new Date(r.recorded_at).toLocaleTimeString('tr-TR'),
-    value: r.value,
-  }))
-})
+  return readings.value
+    .slice()
+    .reverse()
+    .map((r) => ({
+      time: new Date(r.recorded_at || "").toLocaleTimeString("tr-TR"),
+      value: r.value,
+    }));
+});
 
 const latestValue = computed(() => {
-  return readings.value[0]?.value ?? null
-})
+  return readings.value[0]?.value ?? null;
+});
 
 const avgValue = computed(() =>
   readings.value.length
     ? (
-        readings.value.reduce((a, r) => a + Number(r.value), 0)
-        / readings.value.length
+        readings.value.reduce((a, r) => a + Number(r.value), 0) /
+        readings.value.length
       ).toFixed(2)
     : null,
-)
+);
 
 const minValue = computed(() => {
-  if (readings.value.length === 0)
-    return null
-  return Math.min(...readings.value.map(r => r.value))
-})
+  if (readings.value.length === 0) return null;
+  return Math.min(...readings.value.map((r) => r.value));
+});
 
 const maxValue = computed(() => {
-  if (readings.value.length === 0)
-    return null
-  return Math.max(...readings.value.map(r => r.value))
-})
+  if (readings.value.length === 0) return null;
+  return Math.max(...readings.value.map((r) => r.value));
+});
 
 // Raw sensör değerini % nem olarak çevirir
-function convertToPercentage(rawValue: number, min_value?: number, max_value?: number): number | null {
-  if (rawValue == null)
-    return null
+function convertToPercentage(
+  rawValue: number,
+  min_value?: number,
+  max_value?: number,
+): number | null {
+  if (rawValue == null) return null;
 
-  const minVal = min_value ?? 305 // en ıslak ölçüm
-  const maxVal = max_value ?? 668 // en kuru ölçüm
+  const minVal = min_value ?? 305; // en ıslak ölçüm
+  const maxVal = max_value ?? 668; // en kuru ölçüm
 
   if (maxVal > minVal) {
     // Ters çevirme: kuru (max) -> 0%, ıslak (min) -> 100%
-    const percentage = Math.round(((maxVal - rawValue) / (maxVal - minVal)) * 100)
-    return Math.max(0, Math.min(100, percentage))
+    const percentage = Math.round(
+      ((maxVal - rawValue) / (maxVal - minVal)) * 100,
+    );
+    return Math.max(0, Math.min(100, percentage));
   }
 
   // maxVal <= minVal ise raw değeri direkt döndür
-  return rawValue
+  return rawValue;
 }
 
 onMounted(() => {
-  loadSensor()
-  loadReadings()
-})
+  loadSensor();
+  loadReadings();
+});
 </script>
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
     <q-header elevated class="bg-green-8 text-white">
-      <q-toolbar :class="$q.screen.lt.md ? 'q-py-sm' : 'q-py-md'" class="q-pl-lg">
+      <q-toolbar
+        :class="$q.screen.lt.md ? 'q-py-sm' : 'q-py-md'"
+        class="q-pl-lg"
+      >
         <!-- BACK -->
         <q-btn
           flat
@@ -140,12 +150,10 @@ onMounted(() => {
             alt="AgriSense Logo"
             :height="$q.screen.lt.md ? 26 : 32"
             class="q-mr-sm"
-          >
+          />
 
           <!-- SADECE DESKTOP -->
-          <span class="gt-sm">
-            Sensör Verileri
-          </span>
+          <span class="gt-sm"> Sensör Verileri </span>
         </q-toolbar-title>
 
         <!-- DESKTOP MENU -->
@@ -163,13 +171,7 @@ onMounted(() => {
         </div>
 
         <!-- MOBILE MENU -->
-        <q-btn
-          v-else
-          flat
-          round
-          dense
-          icon="menu"
-        >
+        <q-btn v-else flat round dense icon="menu">
           <q-menu anchor="bottom right" self="top right">
             <q-list style="min-width: 220px">
               <!-- USER -->
@@ -197,9 +199,7 @@ onMounted(() => {
               <q-separator />
 
               <q-item clickable @click="handleLogout">
-                <q-item-section class="text-negative">
-                  Çıkış
-                </q-item-section>
+                <q-item-section class="text-negative"> Çıkış </q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -221,7 +221,7 @@ onMounted(() => {
                 class="q-mr-sm"
               />
               <div class="text-h6 text-weight-bold">
-                {{ sensor.name || 'Sensör Bilgileri' }}
+                {{ sensor.name || "Sensör Bilgileri" }}
               </div>
             </div>
 
@@ -232,11 +232,9 @@ onMounted(() => {
               <!-- TIP -->
               <div class="col-6 col-md-3">
                 <q-card flat bordered class="q-pa-sm text-center">
-                  <div class="text-caption text-grey-7">
-                    Tip
-                  </div>
+                  <div class="text-caption text-grey-7">Tip</div>
                   <div class="text-body1 text-weight-medium">
-                    {{ getSensorLabel(sensor.sensor_type) }}
+                    {{ getSensorLabel(sensor.type || "") }}
                   </div>
                 </q-card>
               </div>
@@ -244,11 +242,9 @@ onMounted(() => {
               <!-- BIRIM -->
               <div class="col-6 col-md-3">
                 <q-card flat bordered class="q-pa-sm text-center">
-                  <div class="text-caption text-grey-7">
-                    Birim
-                  </div>
+                  <div class="text-caption text-grey-7">Birim</div>
                   <div class="text-body1 text-weight-medium">
-                    {{ sensor.unit || '-' }}
+                    {{ sensor.unit || "-" }}
                   </div>
                 </q-card>
               </div>
@@ -256,11 +252,9 @@ onMounted(() => {
               <!-- MIN -->
               <div class="col-6 col-md-3">
                 <q-card flat bordered class="q-pa-sm text-center">
-                  <div class="text-caption text-grey-7">
-                    Min Değer
-                  </div>
+                  <div class="text-caption text-grey-7">Min Değer</div>
                   <div class="text-body1 text-weight-medium">
-                    {{ sensor.min_value ?? '-' }}
+                    {{ sensor.min_value ?? "-" }}
                   </div>
                 </q-card>
               </div>
@@ -268,11 +262,9 @@ onMounted(() => {
               <!-- MAX -->
               <div class="col-6 col-md-3">
                 <q-card flat bordered class="q-pa-sm text-center">
-                  <div class="text-caption text-grey-7">
-                    Max Değer
-                  </div>
+                  <div class="text-caption text-grey-7">Max Değer</div>
                   <div class="text-body1 text-weight-medium">
-                    {{ sensor.max_value ?? '-' }}
+                    {{ sensor.max_value ?? "-" }}
                   </div>
                 </q-card>
               </div>
@@ -285,11 +277,9 @@ onMounted(() => {
           <div class="col-12 col-md-3">
             <q-card>
               <q-card-section class="text-center">
-                <div class="text-caption text-grey-7">
-                  Son Değer
-                </div>
+                <div class="text-caption text-grey-7">Son Değer</div>
                 <div class="text-h4 text-weight-bold text-green-8">
-                  {{ latestValue !== null ? latestValue : '-' }}
+                  {{ latestValue !== null ? latestValue : "-" }}
                 </div>
               </q-card-section>
             </q-card>
@@ -297,11 +287,9 @@ onMounted(() => {
           <div class="col-12 col-md-3">
             <q-card>
               <q-card-section class="text-center">
-                <div class="text-caption text-grey-7">
-                  Ortalama
-                </div>
+                <div class="text-caption text-grey-7">Ortalama</div>
                 <div class="text-h4 text-weight-bold text-blue">
-                  {{ avgValue || '-' }}
+                  {{ avgValue || "-" }}
                 </div>
               </q-card-section>
             </q-card>
@@ -309,11 +297,9 @@ onMounted(() => {
           <div class="col-12 col-md-3">
             <q-card>
               <q-card-section class="text-center">
-                <div class="text-caption text-grey-7">
-                  Minimum
-                </div>
+                <div class="text-caption text-grey-7">Minimum</div>
                 <div class="text-h4 text-weight-bold text-cyan">
-                  {{ minValue !== null ? minValue : '-' }}
+                  {{ minValue !== null ? minValue : "-" }}
                 </div>
               </q-card-section>
             </q-card>
@@ -321,11 +307,9 @@ onMounted(() => {
           <div class="col-12 col-md-3">
             <q-card>
               <q-card-section class="text-center">
-                <div class="text-caption text-grey-7">
-                  Maksimum
-                </div>
+                <div class="text-caption text-grey-7">Maksimum</div>
                 <div class="text-h4 text-weight-bold text-orange">
-                  {{ maxValue !== null ? maxValue : '-' }}
+                  {{ maxValue !== null ? maxValue : "-" }}
                 </div>
               </q-card-section>
             </q-card>
@@ -336,9 +320,7 @@ onMounted(() => {
         <q-card>
           <q-card-section>
             <div class="row items-center">
-              <div class="text-h6">
-                Okumalar
-              </div>
+              <div class="text-h6">Okumalar</div>
               <q-space />
               <q-select
                 v-model="limit"
@@ -366,21 +348,23 @@ onMounted(() => {
 
           <q-card-section v-else-if="readings.length === 0" class="text-center">
             <q-icon name="database" size="80px" color="grey-5" />
-            <div class="text-h6 text-grey-7 q-mt-md">
-              Henüz veri yok
-            </div>
+            <div class="text-h6 text-grey-7 q-mt-md">Henüz veri yok</div>
           </q-card-section>
 
           <q-markup-table v-else flat>
             <thead>
               <tr>
-                <th class="text-left">
-                  Tarih/Saat
-                </th>
-                <th class="text-right">
-                  Ham Değer
-                </th>
-                <th v-if="sensor?.min_value !== null && sensor?.min_value !== undefined && sensor?.max_value !== null && sensor?.max_value !== undefined" class="text-right">
+                <th class="text-left">Tarih/Saat</th>
+                <th class="text-right">Ham Değer</th>
+                <th
+                  v-if="
+                    sensor?.min_value !== null &&
+                    sensor?.min_value !== undefined &&
+                    sensor?.max_value !== null &&
+                    sensor?.max_value !== undefined
+                  "
+                  class="text-right"
+                >
                   Yüzde (%)
                 </th>
               </tr>
@@ -388,13 +372,29 @@ onMounted(() => {
             <tbody>
               <tr v-for="reading in readings" :key="reading.id">
                 <td class="text-left">
-                  {{ new Date(reading.recorded_at).toLocaleString('tr-TR') }}
+                  {{
+                    new Date(reading.recorded_at || "").toLocaleString("tr-TR")
+                  }}
                 </td>
                 <td class="text-right text-weight-bold">
                   {{ reading.value }}
                 </td>
-                <td v-if="sensor?.min_value !== null && sensor?.min_value !== undefined && sensor?.max_value !== null && sensor?.max_value !== undefined" class="text-right text-weight-bold text-green-8">
-                  {{ convertToPercentage(reading.value, sensor.min_value, sensor.max_value) }}%
+                <td
+                  v-if="
+                    sensor?.min_value !== null &&
+                    sensor?.min_value !== undefined &&
+                    sensor?.max_value !== null &&
+                    sensor?.max_value !== undefined
+                  "
+                  class="text-right text-weight-bold text-green-8"
+                >
+                  {{
+                    convertToPercentage(
+                      reading.value,
+                      sensor.min_value,
+                      sensor.max_value,
+                    )
+                  }}%
                 </td>
               </tr>
             </tbody>
@@ -406,7 +406,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-  .select-none {
+.select-none {
   user-select: none !important;
 }
 </style>

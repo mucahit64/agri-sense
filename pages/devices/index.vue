@@ -1,103 +1,102 @@
 <script setup lang="ts">
-import type { Device } from '~/types'
-import { Dialog, Notify } from 'quasar'
+import type { Device } from "~/types";
+import { Dialog, Notify } from "quasar";
 
 definePageMeta({
   middleware: async (_to, _from) => {
-    const { checkAuth } = useAuth()
-    const isAuth = await checkAuth()
+    const { checkAuth } = useAuth();
+    const isAuth = await checkAuth();
     if (!isAuth) {
-      return navigateTo('/auth/login')
+      return navigateTo("/auth/login");
     }
   },
-})
+});
 
-const { user, logout } = useAuth()
-const router = useRouter()
+const { user, logout } = useAuth();
+const router = useRouter();
 
-const devices = ref<Device[]>([])
-const loading = ref(true)
-const showAddDialog = ref(false)
+const devices = ref<Device[]>([]);
+const loading = ref(true);
+const showAddDialog = ref(false);
 const newDevice = ref({
-  device_uid: '',
-  device_name: '',
-})
+  name: "",
+  type: "",
+  location: "",
+});
 
 async function loadDevices() {
   try {
-    loading.value = true
-    const response = await $fetch('/api/devices')
-    devices.value = response.devices
-  }
-  catch (error) {
-    console.error('Cihazlar yüklenemedi:', error)
-  }
-  finally {
-    loading.value = false
+    loading.value = true;
+    const response = await $fetch("/api/devices");
+    devices.value = response.devices;
+  } catch (error) {
+    console.error("Cihazlar yüklenemedi:", error);
+  } finally {
+    loading.value = false;
   }
 }
 
 async function addDevice() {
   try {
-    await $fetch('/api/devices', {
-      method: 'POST',
+    await $fetch("/api/devices", {
+      method: "POST",
       body: newDevice.value,
-    })
-    showAddDialog.value = false
-    newDevice.value = { device_uid: '', device_name: '' }
-    await loadDevices()
+    });
+    showAddDialog.value = false;
+    newDevice.value = { name: "", type: "", location: "" };
+    await loadDevices();
     Notify.create({
-      type: 'positive',
-      message: 'Cihaz başarıyla eklendi',
-    })
-  }
-  catch (error: any) {
+      type: "positive",
+      message: "Cihaz başarıyla eklendi",
+    });
+  } catch (error: any) {
     Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Cihaz eklenemedi',
-    })
+      type: "negative",
+      message: error.data?.message || "Cihaz eklenemedi",
+    });
   }
 }
 
 async function deleteDevice(id: number) {
   Dialog.create({
-    title: 'Onay',
-    message: 'Bu cihazı silmek istediğinizden emin misiniz?',
+    title: "Onay",
+    message: "Bu cihazı silmek istediğinizden emin misiniz?",
     cancel: true,
     persistent: true,
-  })
-    .onOk(async () => {
-      try {
-        await $fetch(`/api/devices/${id}`, { method: 'DELETE' })
-        await loadDevices()
-        Notify.create({
-          type: 'positive',
-          message: 'Cihaz başarıyla silindi',
-        })
-      }
-      catch (error: any) {
-        Notify.create({
-          type: 'negative',
-          message: error.data?.message || 'Cihaz silinemedi',
-        })
-      }
-    })
+  }).onOk(async () => {
+    try {
+      await $fetch(`/api/devices/${id}`, { method: "DELETE" });
+      await loadDevices();
+      Notify.create({
+        type: "positive",
+        message: "Cihaz başarıyla silindi",
+      });
+    } catch (error: any) {
+      Notify.create({
+        type: "negative",
+        message: error.data?.message || "Cihaz silinemedi",
+      });
+    }
+  });
 }
 
 async function handleLogout() {
-  await logout()
-  router.push('/')
+  await logout();
+  router.push("/");
 }
 
 onMounted(() => {
-  loadDevices()
-})
+  loadDevices();
+});
 </script>
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
     <q-header elevated class="bg-green-8 text-white">
-      <q-toolbar :class="$q.screen.lt.md ? 'q-py-sm' : 'q-py-md'" class="q-pl-lg">
+      <q-toolbar
+        :class="$q.screen.lt.md ? 'q-py-sm' : 'q-py-md'"
+        class="q-pl-lg"
+      >
         <!-- LOGO + TITLE -->
         <q-toolbar-title class="row items-center no-wrap">
           <img
@@ -105,12 +104,10 @@ onMounted(() => {
             alt="AgriSense Logo"
             :height="$q.screen.lt.md ? 28 : 32"
             class="q-mr-sm"
-          >
+          />
 
           <!-- SADECE DESKTOP -->
-          <span class="gt-sm">
-            AgriSense - Cihazlarım
-          </span>
+          <span class="gt-sm"> AgriSense - Cihazlarım </span>
         </q-toolbar-title>
 
         <!-- DESKTOP MENU -->
@@ -130,13 +127,7 @@ onMounted(() => {
         </div>
 
         <!-- MOBILE MENU -->
-        <q-btn
-          v-else
-          flat
-          round
-          dense
-          icon="menu"
-        >
+        <q-btn v-else flat round dense icon="menu">
           <q-menu anchor="bottom right" self="top right">
             <q-list style="min-width: 220px">
               <!-- USER INFO -->
@@ -168,9 +159,7 @@ onMounted(() => {
               <q-separator />
 
               <q-item clickable @click="handleLogout">
-                <q-item-section class="text-negative">
-                  Çıkış
-                </q-item-section>
+                <q-item-section class="text-negative"> Çıkış </q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -181,9 +170,7 @@ onMounted(() => {
     <q-page-container>
       <q-page class="q-pa-md">
         <div class="row items-center q-mb-md">
-          <div class="text-h5 text-weight-bold">
-            Cihazlarım
-          </div>
+          <div class="text-h5 text-weight-bold">Cihazlarım</div>
           <q-space />
           <q-btn
             unelevated
@@ -202,9 +189,7 @@ onMounted(() => {
         <!-- No Devices State -->
         <div v-else-if="devices.length === 0" class="text-center q-pa-xl">
           <q-icon name="devices" size="80px" color="grey-5" />
-          <div class="text-h6 text-grey-7 q-mt-md">
-            Henüz cihaz eklenmemiş
-          </div>
+          <div class="text-h6 text-grey-7 q-mt-md">Henüz cihaz eklenmemiş</div>
           <q-btn
             flat
             color="green-8"
@@ -216,17 +201,21 @@ onMounted(() => {
 
         <!-- Device List -->
         <div v-else class="row q-col-gutter-md">
-          <div v-for="device in devices" :key="device.id" class="col-12 col-md-4">
+          <div
+            v-for="device in devices"
+            :key="device.id"
+            class="col-12 col-md-4"
+          >
             <q-card>
               <q-card-section>
                 <div class="row items-center">
                   <q-icon name="memory" size="32px" color="green-8" />
                   <div class="q-ml-md">
                     <div class="text-h6">
-                      {{ device.device_name || 'İsimsiz Cihaz' }}
+                      {{ device.name || "İsimsiz Cihaz" }}
                     </div>
                     <div class="text-caption text-grey-7">
-                      {{ device.device_uid }}
+                      {{ device.type || "Tip belirtilmemiş" }}
                     </div>
                   </div>
                 </div>
@@ -236,11 +225,17 @@ onMounted(() => {
 
               <q-card-section>
                 <div class="row items-center q-gutter-sm">
-                  <q-badge :color="device.is_active ? 'positive' : 'grey'">
-                    {{ device.is_active ? 'Aktif' : 'Pasif' }}
+                  <q-badge
+                    :color="device.status === 'active' ? 'positive' : 'grey'"
+                  >
+                    {{
+                      device.status === "active"
+                        ? "Aktif"
+                        : device.status || "Bilinmiyor"
+                    }}
                   </q-badge>
-                  <q-badge v-if="device.last_seen_at" color="blue">
-                    Son: {{ new Date(device.last_seen_at).toLocaleString('tr-TR') }}
+                  <q-badge v-if="device.location" color="blue">
+                    {{ device.location }}
                   </q-badge>
                 </div>
               </q-card-section>
@@ -270,24 +265,29 @@ onMounted(() => {
         <q-dialog v-model="showAddDialog">
           <q-card style="min-width: 400px">
             <q-card-section>
-              <div class="text-h6">
-                Yeni Cihaz Ekle
-              </div>
+              <div class="text-h6">Yeni Cihaz Ekle</div>
             </q-card-section>
 
             <q-card-section>
               <q-input
-                v-model="newDevice.device_uid"
+                v-model="newDevice.name"
                 outlined
-                label="Cihaz UID *"
-                hint="Örn: ESP32_ABC123"
+                label="Cihaz Adı *"
+                hint="Örn: Bahçe Sensörü"
               />
               <q-input
-                v-model="newDevice.device_name"
+                v-model="newDevice.type"
                 outlined
-                label="Cihaz Adı"
+                label="Cihaz Tipi"
                 class="q-mt-md"
-                hint="Örn: Bahçe Sensörü"
+                hint="Örn: ESP32, Arduino"
+              />
+              <q-input
+                v-model="newDevice.location"
+                outlined
+                label="Konum"
+                class="q-mt-md"
+                hint="Örn: Sera 1, Bahçe"
               />
             </q-card-section>
 
@@ -297,7 +297,7 @@ onMounted(() => {
                 unelevated
                 color="green-8"
                 label="Ekle"
-                :disable="!newDevice.device_uid"
+                :disable="!newDevice.name"
                 @click="addDevice"
               />
             </q-card-actions>
@@ -309,7 +309,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-  .select-none {
+.select-none {
   user-select: none !important;
 }
 </style>

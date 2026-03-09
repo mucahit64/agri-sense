@@ -15,30 +15,19 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody<DeviceCreate>(event)
 
-  if (!body.device_uid) {
+  if (!body.name) {
     throw createError({
       statusCode: 400,
-      message: 'Cihaz UID gerekli',
+      message: 'Cihaz adı gerekli',
     })
   }
 
   try {
-    // Cihaz zaten kayıtlı mı kontrol et
-    const existing = await db
-      .prepare('SELECT id FROM devices WHERE device_uid = ?')
-      .bind(body.device_uid)
-      .first()
-
-    if (existing) {
-      throw createError({
-        statusCode: 409,
-        message: 'Bu cihaz UID zaten kayıtlı',
-      })
-    }
+    const now = new Date().toISOString()
 
     const device = await db
-      .prepare('INSERT INTO devices (user_id, device_uid, device_name, is_active, created_at) VALUES (?, ?, ?, ?, ?) RETURNING *')
-      .bind(userId, body.device_uid, body.device_name || null, 1, new Date().toISOString())
+      .prepare('INSERT INTO devices (user_id, name, type, status, location, field_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *')
+      .bind(userId, body.name, body.type || null, body.status || 'active', body.location || null, body.field_id || null, now, now)
       .first()
 
     return {

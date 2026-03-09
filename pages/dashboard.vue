@@ -1,87 +1,82 @@
 <script setup lang="ts">
-const { user, logout, checkAuth } = useAuth()
-const router = useRouter()
+const { user, logout, checkAuth } = useAuth();
+const router = useRouter();
 
 const stats = ref({
   devices: 0,
   sensors: 0,
   readings: 0,
-})
+});
 
-const weather = ref<any>(null)
-const weatherLoading = ref(false)
+const weather = ref<any>(null);
+const weatherLoading = ref(false);
 
-const irrigationAI = ref<any>(null)
-const irrigationAILoading = ref(false)
+const irrigationAI = ref<any>(null);
+const irrigationAILoading = ref(false);
 
 const payloadExample = `{
-  "device_uid": "ARDUINO_001",
-  "sensor_uid": "SENSOR_001",
+  "device_name": "ARDUINO_001",
+  "sensor_name": "SENSOR_001",
+  "sensor_type": "soil_moisture",
   "value": 65.5
-}`
+}`;
 
 onMounted(async () => {
-  const isAuthenticated = await checkAuth()
+  const isAuthenticated = await checkAuth();
   if (!isAuthenticated) {
-    router.push('/auth/login')
+    router.push("/auth/login");
+  } else {
+    loadStats();
+    loadWeather();
+    loadIrrigationAI();
   }
-  else {
-    loadStats()
-    loadWeather()
-    loadIrrigationAI()
-  }
-})
+});
 
 async function loadStats() {
   try {
     const [devicesRes, sensorsRes, readingsRes] = await Promise.all([
-      $fetch('/api/devices'),
-      $fetch('/api/sensors'),
-      $fetch('/api/readings'), // ?limit=1
-    ])
+      $fetch("/api/devices"),
+      $fetch("/api/sensors"),
+      $fetch("/api/readings"), // ?limit=1
+    ]);
     stats.value = {
       devices: devicesRes.devices?.length || 0,
       sensors: sensorsRes.sensors?.length || 0,
       readings: readingsRes.readings?.length || 0,
-    }
-  }
-  catch (error) {
-    console.error('İstatistikler yüklenemedi:', error)
+    };
+  } catch (error) {
+    console.error("İstatistikler yüklenemedi:", error);
   }
 }
 
 async function loadWeather() {
-  weatherLoading.value = true
+  weatherLoading.value = true;
   try {
-    const response = await $fetch('/api/weather')
-    weather.value = response.weather
-  }
-  catch (error) {
-    console.error('Hava durumu yüklenemedi:', error)
-  }
-  finally {
-    weatherLoading.value = false
+    const response = await $fetch("/api/weather");
+    weather.value = response.weather;
+  } catch (error) {
+    console.error("Hava durumu yüklenemedi:", error);
+  } finally {
+    weatherLoading.value = false;
   }
 }
 
 async function loadIrrigationAI() {
-  irrigationAILoading.value = true
+  irrigationAILoading.value = true;
   try {
-    const response = await $fetch('/api/irrigation-ai')
-    irrigationAI.value = response
-  }
-  catch (error) {
-    console.error('AI sulama önerisi yüklenemedi:', error)
-    irrigationAI.value = null
-  }
-  finally {
-    irrigationAILoading.value = false
+    const response = await $fetch("/api/irrigation-ai");
+    irrigationAI.value = response;
+  } catch (error) {
+    console.error("AI sulama önerisi yüklenemedi:", error);
+    irrigationAI.value = null;
+  } finally {
+    irrigationAILoading.value = false;
   }
 }
 
 async function handleLogout() {
-  await logout()
-  router.push('/')
+  await logout();
+  router.push("/");
 }
 </script>
 
@@ -90,20 +85,16 @@ async function handleLogout() {
     <q-header elevated class="bg-green-8 text-white">
       <q-toolbar class="q-py-md q-pl-lg">
         <!-- LOGO -->
-        <q-toolbar-title
-          class="row items-center cursor-pointer no-wrap"
-        >
+        <q-toolbar-title class="row items-center cursor-pointer no-wrap">
           <img
             src="/agri-sense-white.png"
             alt="AgriSense Logo"
             :height="$q.screen.lt.md ? 28 : 32"
             class="q-mr-sm"
-          >
+          />
 
           <!-- SADECE DESKTOP -->
-          <span class="gt-sm">
-            AgriSense Dashboard
-          </span>
+          <span class="gt-sm"> AgriSense Dashboard </span>
         </q-toolbar-title>
 
         <!-- DESKTOP MENU -->
@@ -123,13 +114,7 @@ async function handleLogout() {
         </div>
 
         <!-- MOBILE MENU -->
-        <q-btn
-          v-else
-          flat
-          round
-          dense
-          icon="menu"
-        >
+        <q-btn v-else flat round dense icon="menu">
           <q-menu anchor="bottom right" self="top right">
             <q-list style="min-width: 220px">
               <q-item clickable>
@@ -160,9 +145,7 @@ async function handleLogout() {
               <q-separator />
 
               <q-item clickable @click="handleLogout">
-                <q-item-section class="text-negative">
-                  Çıkış
-                </q-item-section>
+                <q-item-section class="text-negative"> Çıkış </q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -207,7 +190,9 @@ async function handleLogout() {
                     <q-card-section>
                       <div class="text-body1">
                         <q-icon name="auto_awesome" color="blue" size="20px" />
-                        <span class="text-weight-bold q-ml-sm">AI Önerisi:</span>
+                        <span class="text-weight-bold q-ml-sm"
+                          >AI Önerisi:</span
+                        >
                       </div>
                       <div class="text-body1 q-mt-sm">
                         {{ irrigationAI.answer }}
@@ -232,7 +217,11 @@ async function handleLogout() {
                     <div class="col-6 col-md-3">
                       <q-card flat bordered>
                         <q-card-section class="text-center">
-                          <q-icon name="thermostat" size="32px" color="orange" />
+                          <q-icon
+                            name="thermostat"
+                            size="32px"
+                            color="orange"
+                          />
                           <div class="text-caption text-grey-7 q-mt-sm">
                             Sıcaklık
                           </div>
@@ -273,9 +262,7 @@ async function handleLogout() {
 
                 <div v-else class="text-center text-grey-6 q-py-md">
                   <q-icon name="error_outline" size="48px" />
-                  <div class="q-mt-sm">
-                    AI önerisi alınamadı
-                  </div>
+                  <div class="q-mt-sm">AI önerisi alınamadı</div>
                 </div>
               </q-card-section>
             </q-card>
@@ -290,9 +277,7 @@ async function handleLogout() {
                 <div class="text-h4 q-mt-md text-weight-bold">
                   {{ stats.devices }}
                 </div>
-                <div class="text-caption text-grey-7">
-                  Cihazlar
-                </div>
+                <div class="text-caption text-grey-7">Cihazlar</div>
               </q-card-section>
             </q-card>
           </div>
@@ -304,9 +289,7 @@ async function handleLogout() {
                 <div class="text-h4 q-mt-md text-weight-bold">
                   {{ stats.sensors }}
                 </div>
-                <div class="text-caption text-grey-7">
-                  Sensörler
-                </div>
+                <div class="text-caption text-grey-7">Sensörler</div>
               </q-card-section>
             </q-card>
           </div>
@@ -318,9 +301,7 @@ async function handleLogout() {
                 <div class="text-h4 q-mt-md text-weight-bold">
                   {{ stats.readings }}
                 </div>
-                <div class="text-caption text-grey-7">
-                  Toplam Okuma
-                </div>
+                <div class="text-caption text-grey-7">Toplam Okuma</div>
               </q-card-section>
             </q-card>
           </div>
@@ -330,9 +311,7 @@ async function handleLogout() {
           <div class="col-12 col-md-6">
             <q-card>
               <q-card-section>
-                <div class="text-h6 q-mb-md">
-                  Hızlı Erişim
-                </div>
+                <div class="text-h6 q-mb-md">Hızlı Erişim</div>
                 <q-list>
                   <q-item clickable to="/devices">
                     <q-item-section avatar>
@@ -415,12 +394,11 @@ async function handleLogout() {
           <div class="col-12">
             <q-card>
               <q-card-section>
-                <div class="text-h6 q-mb-sm">
-                  API Information
-                </div>
+                <div class="text-h6 q-mb-sm">API Information</div>
 
                 <div class="text-body2 text-grey-7 q-mb-md">
-                  Use the following endpoint to send sensor data from your Arduino / ESP devices.
+                  Use the following endpoint to send sensor data from your
+                  Arduino / ESP devices.
                 </div>
 
                 <q-input
@@ -442,7 +420,8 @@ async function handleLogout() {
                 />
 
                 <div class="text-caption text-grey-6 q-mt-sm">
-                  The device will be automatically registered if it does not exist.
+                  The device will be automatically registered if it does not
+                  exist.
                 </div>
               </q-card-section>
             </q-card>
@@ -454,7 +433,7 @@ async function handleLogout() {
 </template>
 
 <style scoped>
-  .select-none {
+.select-none {
   user-select: none !important;
 }
 </style>

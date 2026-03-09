@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     const result = await db
       .prepare('INSERT INTO users (name, surname, mail, password_hash, is_active, created_at) VALUES (?, ?, ?, ?, 1, ?) RETURNING id')
       .bind(name, surname, email, password, new Date().toISOString())
-      .first<{ id: number }>()
+      .first() as { id: number } | null
 
     const newUserId = result?.id
 

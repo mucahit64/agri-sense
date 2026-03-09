@@ -1,23 +1,16 @@
--- AgriSense - D1 (SQLite) Migration
--- Tablolar
+-- Fix all tables: PostgreSQL syntax -> SQLite/D1 compatible
+-- Users table is already fixed, fix the rest
 
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    surname TEXT,
-    username TEXT UNIQUE,
-    mail TEXT UNIQUE,
-    phone TEXT,
-    language TEXT,
-    country TEXT,
-    is_active INTEGER DEFAULT 1,
-    last_login_at TEXT,
-    password_hash TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
-);
+-- Fix devices table
+DROP TABLE IF EXISTS device_assignments;
+DROP TABLE IF EXISTS readings;
+DROP TABLE IF EXISTS sensors;
+DROP TABLE IF EXISTS devices;
+DROP TABLE IF EXISTS ai_decisions;
+DROP TABLE IF EXISTS weather;
+DROP TABLE IF EXISTS fields;
 
-CREATE TABLE IF NOT EXISTS fields (
+CREATE TABLE fields (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER REFERENCES users(id),
     name TEXT,
@@ -30,7 +23,7 @@ CREATE TABLE IF NOT EXISTS fields (
     updated_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS devices (
+CREATE TABLE devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER REFERENCES users(id),
     field_id INTEGER REFERENCES fields(id),
@@ -42,7 +35,7 @@ CREATE TABLE IF NOT EXISTS devices (
     updated_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS sensors (
+CREATE TABLE sensors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_id INTEGER REFERENCES devices(id),
     name TEXT,
@@ -54,7 +47,7 @@ CREATE TABLE IF NOT EXISTS sensors (
     updated_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS readings (
+CREATE TABLE readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sensor_id INTEGER REFERENCES sensors(id),
     value REAL,
@@ -62,7 +55,7 @@ CREATE TABLE IF NOT EXISTS readings (
     recorded_at TEXT
 );
 
-CREATE TABLE IF NOT EXISTS weather (
+CREATE TABLE weather (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     field_id INTEGER REFERENCES fields(id),
     source TEXT,
@@ -71,7 +64,7 @@ CREATE TABLE IF NOT EXISTS weather (
     created_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS ai_decisions (
+CREATE TABLE ai_decisions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     field_id INTEGER REFERENCES fields(id),
     decision TEXT,
@@ -81,7 +74,7 @@ CREATE TABLE IF NOT EXISTS ai_decisions (
     created_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS device_assignments (
+CREATE TABLE device_assignments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_id INTEGER REFERENCES devices(id),
     field_id INTEGER REFERENCES fields(id),

@@ -2,7 +2,7 @@ export interface User {
   id: number
   name: string
   surname: string
-  username: string
+  username: string | null
   mail: string
   phone: string | null
   language: string | null
@@ -14,57 +14,91 @@ export interface User {
   updated_at: string | null
 }
 
+export interface Field {
+  id: number
+  user_id: number
+  name: string | null
+  lat: number | null
+  lon: number | null
+  area_m2: number | null
+  soil_type: string | null
+  is_active: number
+  created_at: string | null
+  updated_at: string | null
+}
+
 export interface Device {
   id: number
   user_id: number
-  device_uid: string
-  device_name?: string
-  is_active: boolean
-  last_seen_at?: Date | null
-  created_at: Date
+  field_id: number | null
+  name: string | null
+  type: string | null
+  status: string | null
+  location: string | null
+  created_at: string | null
+  updated_at: string | null
 }
-
-export type SensorType
-  = | 'temperature'
-    | 'humidity'
-    | 'soil_moisture'
-    | 'ph'
-    | 'light'
-    | 'pressure'
 
 export interface Sensor {
   id: number
   device_id: number
-  sensor_uid: string
-  sensor_type: SensorType
-  name?: string
-  pin?: string
-  unit?: string
-  min_value?: number
-  max_value?: number
-  created_at: Date
+  name: string | null
+  type: string | null
+  unit: string | null
+  min_value: number | null
+  max_value: number | null
+  created_at: string | null
+  updated_at: string | null
 }
 
 export interface Reading {
   id: number
   sensor_id: number
   value: number
-  recorded_at: Date
-  created_at: Date
+  created_at: string | null
+  recorded_at: string | null
+}
+
+export interface Weather {
+  id: number
+  field_id: number
+  source: string | null
+  data: string | null
+  recorded_at: string | null
+  created_at: string | null
+}
+
+export interface AiDecision {
+  id: number
+  field_id: number
+  decision: string | null
+  reason: string | null
+  confidence: number | null
+  input_data: string | null
+  created_at: string | null
+}
+
+export interface DeviceAssignment {
+  id: number
+  device_id: number
+  field_id: number
+  user_id: number
+  assigned_at: string | null
+  unassigned_at: string | null
 }
 
 export interface DeviceCreate {
-  user_id: number
-  device_uid: string
-  device_name?: string
+  name: string
+  type?: string
+  status?: string
+  location?: string
+  field_id?: number
 }
 
 export interface SensorCreate {
   device_id: number
-  sensor_uid: string
-  sensor_type: SensorType
-  name?: string
-  pin?: string
+  name: string
+  type: string
   unit?: string
   min_value?: number
   max_value?: number
@@ -73,13 +107,13 @@ export interface SensorCreate {
 export interface ReadingCreate {
   sensor_id: number
   value: number
-  recorded_at: Date
+  recorded_at?: string
 }
 
 export interface SensorPayload {
-  device_uid: string
-  sensor_uid: string
-  sensor_type: SensorType
+  device_name: string
+  sensor_name: string
+  sensor_type: string
   value: number
   recorded_at?: string
 }

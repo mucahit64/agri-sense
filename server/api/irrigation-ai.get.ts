@@ -6,24 +6,22 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
 
   try {
-    const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD formatı
-
     // Önce bugün için kayıt var mı kontrol et
-    const existingRecommendation = await db
-      .prepare('SELECT * FROM ai_recommendations ORDER BY id DESC LIMIT 1')
+    const existingDecision = await db
+      .prepare('SELECT * FROM ai_decisions ORDER BY id DESC LIMIT 1')
       .first()
 
-    if (existingRecommendation) {
-      // Bugün için zaten öneri var, cache'den dön
+    if (existingDecision) {
+      const inputData = existingDecision.input_data ? JSON.parse(existingDecision.input_data as string) : {}
       return {
         success: true,
-        answer: (existingRecommendation as any).recommendation,
-        soilMoisture: (existingRecommendation as any).soil_moisture,
+        answer: existingDecision.reason,
+        soilMoisture: inputData.soilMoisture ?? 50,
         weather: {
-          temp: (existingRecommendation as any).temperature,
-          humidity: (existingRecommendation as any).humidity,
-          description: (existingRecommendation as any).weather_description,
-          rainProbability: (existingRecommendation as any).rain_probability,
+          temp: inputData.temp ?? 20,
+          humidity: inputData.humidity ?? 50,
+          description: inputData.description ?? 'Bilinmiyor',
+          rainProbability: inputData.rainProbability ?? 0,
         },
         cached: true,
       }
@@ -31,9 +29,9 @@ export default defineEventHandler(async (event) => {
 
     // Son toprak nemi okuması
     const latestSoil = await db
-      .prepare('SELECT readings.value, sensors.min_value, sensors.max_value FROM readings JOIN sensors ON readings.sensor_id = sensors.id WHERE sensors.sensor_type = ? ORDER BY readings.recorded_at DESC LIMIT 1')
+      .prepare('SELECT readings.value, sensors.min_value, sensors.max_value FROM readings JOIN sensors ON readings.sensor_id = sensors.id WHERE sensors.type = ? ORDER BY readings.recorded_at DESC LIMIT 1')
       .bind('soil_moisture')
-      .first<{ value: number, min_value: number | null, max_value: number | null }>()
+      .first() as { value: number, min_value: number | null, max_value: number | null } | null
 
     // Raw değeri yüzdeye çevir
     let soilMoisture = 50 // Varsayılan
@@ -110,16 +108,21 @@ export default defineEventHandler(async (event) => {
     }
 
     // Yeni öneriyi veritabanına kaydet
+    const inputData = JSON.stringify({
+      soilMoisture,
+      temp: weatherData.temp,
+      humidity: weatherData.humidity,
+      description: weatherData.description,
+      rainProbability: weatherData.rainProbability,
+    })
+
     await db
-      .prepare('INSERT INTO ai_recommendations (recommendation, soil_moisture, temperature, humidity, weather_description, rain_probability, recommendation_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .prepare('INSERT INTO ai_decisions (decision, reason, confidence, input_data, created_at) VALUES (?, ?, ?, ?, ?)')
       .bind(
+        soilMoisture > 60 ? 'no' : 'yes',
         answer,
-        soilMoisture,
-        weatherData.temp,
-        weatherData.humidity,
-        weatherData.description,
-        weatherData.rainProbability,
-        today,
+        80,
+        inputData,
         new Date().toISOString(),
       )
       .run()
