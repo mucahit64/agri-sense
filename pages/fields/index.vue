@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Device } from '~/types'
+import type { Field } from '~/types'
 import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
@@ -15,70 +15,91 @@ definePageMeta({
 const { user, logout } = useAuth()
 const router = useRouter()
 
-const devices = ref<Device[]>([])
+const fields = ref<Field[]>([])
 const loading = ref(true)
 const showAddDialog = ref(false)
-const newDevice = ref({
+const newField = ref({
   name: '',
-  type: '',
-  location: '',
+  lat: undefined as number | undefined,
+  lon: undefined as number | undefined,
+  area_m2: undefined as number | undefined,
+  soil_type: '',
 })
 
-async function loadDevices() {
+const soilTypes = [
+  { value: 'killi', label: 'Killi' },
+  { value: 'kumlu', label: 'Kumlu' },
+  { value: 'tınlı', label: 'Tınlı' },
+  { value: 'killi-tınlı', label: 'Killi Tınlı' },
+  { value: 'kumlu-tınlı', label: 'Kumlu Tınlı' },
+  { value: 'humuslu', label: 'Humuslu' },
+  { value: 'kireçli', label: 'Kireçli' },
+  { value: 'diğer', label: 'Diğer' },
+]
+
+async function loadFields() {
   try {
     loading.value = true
-    const response = await $fetch<{ success: boolean, devices: Device[] }>('/api/devices')
-    devices.value = response.devices
+    const response = await $fetch<{ success: boolean, fields: Field[] }>(
+      '/api/fields',
+    )
+    fields.value = response.fields
   }
   catch (error) {
-    console.error('Cihazlar yüklenemedi:', error)
+    console.error('Tarlalar yüklenemedi:', error)
   }
   finally {
     loading.value = false
   }
 }
 
-async function addDevice() {
+async function addField() {
   try {
-    await $fetch('/api/devices', {
+    await $fetch('/api/fields', {
       method: 'POST',
-      body: newDevice.value,
+      body: newField.value,
     })
     showAddDialog.value = false
-    newDevice.value = { name: '', type: '', location: '' }
-    await loadDevices()
+    newField.value = {
+      name: '',
+      lat: undefined,
+      lon: undefined,
+      area_m2: undefined,
+      soil_type: '',
+    }
+    await loadFields()
     Notify.create({
       type: 'positive',
-      message: 'Cihaz başarıyla eklendi',
+      message: 'Tarla başarıyla eklendi',
     })
   }
   catch (error: any) {
     Notify.create({
       type: 'negative',
-      message: error.data?.message || 'Cihaz eklenemedi',
+      message: error.data?.message || 'Tarla eklenemedi',
     })
   }
 }
 
-async function deleteDevice(id: number) {
+async function deleteField(id: number) {
   Dialog.create({
     title: 'Onay',
-    message: 'Bu cihazı silmek istediğinizden emin misiniz?',
+    message: 'Bu tarlayı silmek istediğinizden emin misiniz?',
     cancel: true,
     persistent: true,
   }).onOk(async () => {
     try {
-      await $fetch(`/api/devices/${id}`, { method: 'DELETE' })
-      await loadDevices()
+      await $fetch(`/api/fields/${id}`, { method: 'DELETE' })
+      await loadFields()
       Notify.create({
         type: 'positive',
-        message: 'Cihaz başarıyla silindi',
+        message: 'Tarla başarıyla silindi',
       })
     }
     catch (error: any) {
       Notify.create({
         type: 'negative',
-        message: error.data?.message || 'Cihaz silinemedi',
+        message: error.data?.message || 'Tarla silinemedi',
       })
     }
   })
@@ -90,7 +111,7 @@ async function handleLogout() {
 }
 
 onMounted(() => {
-  loadDevices()
+  loadFields()
 })
 </script>
 
@@ -101,7 +122,6 @@ onMounted(() => {
         :class="$q.screen.lt.md ? 'q-py-sm' : 'q-py-md'"
         class="q-pl-lg"
       >
-        <!-- LOGO + TITLE -->
         <q-toolbar-title class="row items-center no-wrap">
           <img
             src="/agri-sense-white.png"
@@ -109,16 +129,14 @@ onMounted(() => {
             :height="$q.screen.lt.md ? 28 : 32"
             class="q-mr-sm"
           >
-
-          <!-- SADECE DESKTOP -->
-          <span class="gt-sm"> AgriSense - Cihazlarım </span>
+          <span class="gt-sm"> AgriSense - Tarlalarım </span>
         </q-toolbar-title>
 
         <!-- DESKTOP MENU -->
         <div v-if="$q.screen.gt.sm" class="row items-center q-gutter-sm">
           <q-btn flat label="Dashboard" to="/dashboard" />
-          <q-btn flat label="Tarlalar" to="/fields" />
-          <q-btn flat label="Cihazlar" />
+          <q-btn flat label="Tarlalar" />
+          <q-btn flat label="Cihazlar" to="/devices" />
           <q-btn flat label="Sensörler" to="/sensors" />
 
           <q-space />
@@ -135,14 +153,10 @@ onMounted(() => {
         <q-btn v-else flat round dense icon="menu">
           <q-menu anchor="bottom right" self="top right">
             <q-list style="min-width: 220px">
-              <!-- USER INFO -->
               <q-item>
                 <q-item-section>
                   <div class="text-weight-bold">
                     {{ user?.name }} {{ user?.surname }}
-                  </div>
-                  <div class="text-caption text-grey-6">
-                    {{ user?.email }}
                   </div>
                 </q-item-section>
               </q-item>
@@ -153,11 +167,11 @@ onMounted(() => {
                 <q-item-section>Dashboard</q-item-section>
               </q-item>
 
-              <q-item clickable to="/fields">
+              <q-item clickable>
                 <q-item-section>Tarlalar</q-item-section>
               </q-item>
 
-              <q-item clickable>
+              <q-item clickable to="/devices">
                 <q-item-section>Cihazlar</q-item-section>
               </q-item>
 
@@ -182,55 +196,51 @@ onMounted(() => {
       <q-page class="q-pa-md">
         <div class="row items-center q-mb-md">
           <div class="text-h5 text-weight-bold">
-            Cihazlarım
+            Tarlalarım
           </div>
           <q-space />
           <q-btn
             unelevated
             color="green-8"
-            label="Yeni Cihaz Ekle"
+            label="Yeni Tarla Ekle"
             icon="add"
             @click="showAddDialog = true"
           />
         </div>
 
-        <!-- Loading State / No Devices / Device List -->
+        <!-- Loading -->
         <div v-if="loading" class="text-center q-pa-xl">
           <q-spinner size="50px" color="green-8" />
         </div>
 
-        <!-- No Devices State -->
-        <div v-else-if="devices.length === 0" class="text-center q-pa-xl">
-          <q-icon name="devices" size="80px" color="grey-5" />
+        <!-- No Fields -->
+        <div v-else-if="fields.length === 0" class="text-center q-pa-xl">
+          <q-icon name="landscape" size="80px" color="grey-5" />
           <div class="text-h6 text-grey-7 q-mt-md">
-            Henüz cihaz eklenmemiş
+            Henüz tarla eklenmemiş
           </div>
           <q-btn
             flat
             color="green-8"
-            label="İlk Cihazınızı Ekleyin"
+            label="İlk Tarlanızı Ekleyin"
             class="q-mt-md"
             @click="showAddDialog = true"
           />
         </div>
 
-        <!-- Device List -->
+        <!-- Fields List -->
         <div v-else class="row q-col-gutter-md">
-          <div
-            v-for="device in devices"
-            :key="device.id"
-            class="col-12 col-md-4"
-          >
+          <div v-for="field in fields" :key="field.id" class="col-12 col-md-4">
             <q-card>
               <q-card-section>
                 <div class="row items-center">
-                  <q-icon name="memory" size="32px" color="green-8" />
+                  <q-icon name="landscape" size="32px" color="green-8" />
                   <div class="q-ml-md">
                     <div class="text-h6">
-                      {{ device.name || "İsimsiz Cihaz" }}
+                      {{ field.name || "İsimsiz Tarla" }}
                     </div>
                     <div class="text-caption text-grey-7">
-                      {{ device.type || "Tip belirtilmemiş" }}
+                      {{ field.soil_type || "Toprak tipi belirtilmemiş" }}
                     </div>
                   </div>
                 </div>
@@ -240,17 +250,14 @@ onMounted(() => {
 
               <q-card-section>
                 <div class="row items-center q-gutter-sm">
-                  <q-badge
-                    :color="device.status === 1 ? 'positive' : 'grey'"
-                  >
-                    {{
-                      device.status === 1
-                        ? "Aktif"
-                        : "Pasif"
-                    }}
+                  <q-badge :color="field.is_active === 1 ? 'positive' : 'grey'">
+                    {{ field.is_active === 1 ? "Aktif" : "Pasif" }}
                   </q-badge>
-                  <q-badge v-if="device.location" color="blue">
-                    {{ device.location }}
+                  <q-badge v-if="field.area_m2" color="blue">
+                    {{ field.area_m2 }} m²
+                  </q-badge>
+                  <q-badge v-if="field.lat && field.lon" color="orange">
+                    {{ field.lat?.toFixed(4) }}, {{ field.lon?.toFixed(4) }}
                   </q-badge>
                 </div>
               </q-card-section>
@@ -262,49 +269,72 @@ onMounted(() => {
                   flat
                   color="primary"
                   label="Detay"
-                  :to="`/devices/${device.id}`"
+                  :to="`/fields/${field.id}`"
                 />
                 <q-space />
                 <q-btn
                   flat
                   color="negative"
                   icon="delete"
-                  @click="deleteDevice(device.id)"
+                  @click="deleteField(field.id)"
                 />
               </q-card-actions>
             </q-card>
           </div>
         </div>
 
-        <!-- Add Device Dialog -->
+        <!-- Add Field Dialog -->
         <q-dialog v-model="showAddDialog">
           <q-card style="min-width: 400px">
             <q-card-section>
               <div class="text-h6">
-                Yeni Cihaz Ekle
+                Yeni Tarla Ekle
               </div>
             </q-card-section>
 
             <q-card-section>
               <q-input
-                v-model="newDevice.name"
+                v-model="newField.name"
                 outlined
-                label="Cihaz Adı *"
-                hint="Örn: Bahçe Sensörü"
+                label="Tarla Adı *"
+                hint="Örn: Kuzey Tarla"
+              />
+              <q-select
+                v-model="newField.soil_type"
+                outlined
+                :options="soilTypes"
+                option-value="value"
+                option-label="label"
+                emit-value
+                map-options
+                label="Toprak Tipi"
+                class="q-mt-md"
               />
               <q-input
-                v-model="newDevice.type"
+                v-model.number="newField.area_m2"
                 outlined
-                label="Cihaz Tipi"
+                type="number"
+                label="Alan (m²)"
                 class="q-mt-md"
-                hint="Örn: ESP32, Arduino"
+                hint="Tarlanın alanı"
               />
               <q-input
-                v-model="newDevice.location"
+                v-model.number="newField.lat"
                 outlined
-                label="Konum"
+                type="number"
+                label="Enlem (Lat)"
                 class="q-mt-md"
-                hint="Örn: Sera 1, Bahçe"
+                hint="Örn: 39.9334"
+                step="0.0001"
+              />
+              <q-input
+                v-model.number="newField.lon"
+                outlined
+                type="number"
+                label="Boylam (Lon)"
+                class="q-mt-md"
+                hint="Örn: 32.8597"
+                step="0.0001"
               />
             </q-card-section>
 
@@ -314,8 +344,8 @@ onMounted(() => {
                 unelevated
                 color="green-8"
                 label="Ekle"
-                :disable="!newDevice.name"
-                @click="addDevice"
+                :disable="!newField.name"
+                @click="addField"
               />
             </q-card-actions>
           </q-card>

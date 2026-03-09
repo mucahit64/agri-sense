@@ -2,7 +2,7 @@ export interface User {
   id: number
   name: string
   surname: string
-  username: string | null
+  username: string
   mail: string
   phone: string | null
   language: string | null
@@ -33,7 +33,7 @@ export interface Device {
   field_id: number | null
   name: string | null
   type: string | null
-  status: string | null
+  status: number
   location: string | null
   created_at: string | null
   updated_at: string | null
@@ -43,12 +43,35 @@ export interface Sensor {
   id: number
   device_id: number
   name: string | null
-  type: string | null
-  unit: string | null
+  type_id: number
+  unit_id: number
   min_value: number | null
   max_value: number | null
   created_at: string | null
   updated_at: string | null
+  // Joined fields
+  type_name?: string
+  type_label?: string
+  type_icon?: string
+  unit_name?: string
+  unit_symbol?: string
+}
+
+export interface SensorType {
+  id: number
+  name: string
+  label: string
+  icon: string | null
+  created_at: string | null
+}
+
+export interface Unit {
+  id: number
+  sensor_type_id: number
+  name: string
+  symbol: string
+  is_default: number
+  created_at: string | null
 }
 
 export interface Reading {
@@ -90,16 +113,24 @@ export interface DeviceAssignment {
 export interface DeviceCreate {
   name: string
   type?: string
-  status?: string
+  status?: number
   location?: string
   field_id?: number
+}
+
+export interface FieldCreate {
+  name: string
+  lat?: number
+  lon?: number
+  area_m2?: number
+  soil_type?: string
 }
 
 export interface SensorCreate {
   device_id: number
   name: string
-  type: string
-  unit?: string
+  type_id: number
+  unit_id: number
   min_value?: number
   max_value?: number
 }

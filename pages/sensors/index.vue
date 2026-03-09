@@ -1,59 +1,54 @@
 <script setup lang="ts">
-import type { Sensor } from "~/types";
+import type { Sensor } from '~/types'
 
 definePageMeta({
   middleware: async (_to, _from) => {
-    const { checkAuth } = useAuth();
-    const isAuth = await checkAuth();
+    const { checkAuth } = useAuth()
+    const isAuth = await checkAuth()
     if (!isAuth) {
-      return navigateTo("/auth/login");
+      return navigateTo('/auth/login')
     }
   },
-});
+})
 
-const { user, logout } = useAuth();
-const router = useRouter();
+const { user, logout } = useAuth()
+const router = useRouter()
 
-const sensors = ref<Sensor[]>([]);
-const loading = ref(true);
-
-const sensorTypes = [
-  { value: "temperature", label: "Sıcaklık", icon: "thermostat" },
-  { value: "humidity", label: "Nem", icon: "water_drop" },
-  { value: "soil_moisture", label: "Toprak Nemi", icon: "opacity" },
-  { value: "ph", label: "pH", icon: "science" },
-  { value: "light", label: "Işık", icon: "wb_sunny" },
-  { value: "pressure", label: "Basınç", icon: "compress" },
-];
+const sensors = ref<Sensor[]>([])
+const loading = ref(true)
 
 async function loadSensors() {
   try {
-    loading.value = true;
-    const response = await $fetch("/api/sensors");
-    sensors.value = response.sensors;
-  } catch (error) {
-    console.error("Sensörler yüklenemedi:", error);
-  } finally {
-    loading.value = false;
+    loading.value = true
+    const response = await $fetch<{ success: boolean, sensors: Sensor[] }>('/api/sensors', {
+      method: 'GET',
+    })
+    sensors.value = response.sensors
+  }
+  catch (error) {
+    console.error('Sensörler yüklenemedi:', error)
+  }
+  finally {
+    loading.value = false
   }
 }
 
-function getSensorIcon(type: string) {
-  return sensorTypes.find((t) => t.value === type)?.icon || "sensors";
+function getSensorIcon(sensor: Sensor) {
+  return sensor.type_icon || 'sensors'
 }
 
-function getSensorLabel(type: string) {
-  return sensorTypes.find((t) => t.value === type)?.label || type;
+function getSensorLabel(sensor: Sensor) {
+  return sensor.type_label || sensor.type_name || ''
 }
 
 async function handleLogout() {
-  await logout();
-  router.push("/");
+  await logout()
+  router.push('/')
 }
 
 onMounted(() => {
-  loadSensors();
-});
+  loadSensors()
+})
 </script>
 
 <template>
@@ -70,7 +65,7 @@ onMounted(() => {
             alt="AgriSense Logo"
             :height="$q.screen.lt.md ? 26 : 32"
             class="q-mr-sm"
-          />
+          >
 
           <!-- SADECE DESKTOP -->
           <span class="gt-sm"> AgriSense - Tüm Sensörler </span>
@@ -79,6 +74,7 @@ onMounted(() => {
         <!-- DESKTOP BUTTONS -->
         <div v-if="$q.screen.gt.sm" class="row items-center q-gutter-sm">
           <q-btn flat label="Dashboard" to="/dashboard" />
+          <q-btn flat label="Tarlalar" to="/fields" />
           <q-btn flat label="Cihazlar" to="/devices" />
           <q-btn flat label="Sensörler" />
 
@@ -110,6 +106,10 @@ onMounted(() => {
                 <q-item-section>Dashboard</q-item-section>
               </q-item>
 
+              <q-item clickable to="/fields">
+                <q-item-section>Tarlalar</q-item-section>
+              </q-item>
+
               <q-item clickable to="/devices">
                 <q-item-section>Cihazlar</q-item-section>
               </q-item>
@@ -121,7 +121,9 @@ onMounted(() => {
               <q-separator />
 
               <q-item clickable @click="handleLogout">
-                <q-item-section class="text-negative"> Çıkış </q-item-section>
+                <q-item-section class="text-negative">
+                  Çıkış
+                </q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -131,7 +133,9 @@ onMounted(() => {
 
     <q-page-container>
       <q-page class="q-pa-md">
-        <div class="text-h5 text-weight-bold q-mb-md">Tüm Sensörler</div>
+        <div class="text-h5 text-weight-bold q-mb-md">
+          Tüm Sensörler
+        </div>
 
         <div v-if="loading" class="text-center q-pa-xl">
           <q-spinner size="50px" color="green-8" />
@@ -139,7 +143,9 @@ onMounted(() => {
 
         <div v-else-if="sensors.length === 0" class="text-center q-pa-xl">
           <q-icon name="sensors" size="80px" color="grey-5" />
-          <div class="text-h6 text-grey-7 q-mt-md">Henüz sensör yok</div>
+          <div class="text-h6 text-grey-7 q-mt-md">
+            Henüz sensör yok
+          </div>
           <q-btn
             flat
             color="green-8"
@@ -159,16 +165,16 @@ onMounted(() => {
               <q-card-section>
                 <div class="row items-center">
                   <q-icon
-                    :name="getSensorIcon(sensor.type || '')"
+                    :name="getSensorIcon(sensor)"
                     size="32px"
                     color="green-8"
                   />
                   <div class="q-ml-md">
                     <div class="text-subtitle1 text-weight-bold">
-                      {{ sensor.name || getSensorLabel(sensor.type || "") }}
+                      {{ sensor.name || getSensorLabel(sensor) }}
                     </div>
                     <div class="text-caption text-grey-7">
-                      {{ getSensorLabel(sensor.type || "") }}
+                      {{ getSensorLabel(sensor) }}
                     </div>
                   </div>
                 </div>
@@ -178,7 +184,7 @@ onMounted(() => {
 
               <q-card-section>
                 <div class="text-caption text-grey-7">
-                  Birim: {{ sensor.unit || "-" }}
+                  Birim: {{ sensor.unit_symbol || "-" }}
                 </div>
                 <div class="text-caption text-grey-7">
                   Min:

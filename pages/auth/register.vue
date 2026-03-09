@@ -1,27 +1,39 @@
 <script setup lang="ts">
-const { register } = useAuth()
-const router = useRouter()
+const { register } = useAuth();
+const router = useRouter();
 
-const name = ref('')
-const surname = ref('')
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
-const error = ref('')
+const name = ref("");
+const surname = ref("");
+const username = ref("");
+const email = ref("");
+const password = ref("");
+const phone = ref("");
+const language = ref("");
+const country = ref("");
+const loading = ref(false);
+const error = ref("");
 
 async function handleRegister() {
-  loading.value = true
-  error.value = ''
+  loading.value = true;
+  error.value = "";
 
-  const result = await register(name.value, surname.value, email.value, password.value)
+  const result = await register({
+    name: name.value,
+    surname: surname.value,
+    username: username.value,
+    email: email.value,
+    password: password.value,
+    phone: phone.value || undefined,
+    language: language.value || undefined,
+    country: country.value || undefined,
+  });
 
-  loading.value = false
+  loading.value = false;
 
   if (result.success) {
-    router.push('/dashboard')
-  }
-  else {
-    error.value = result.error || 'Kayıt başarısız'
+    router.push("/dashboard");
+  } else {
+    error.value = result.error || "Kayıt başarısız";
   }
 }
 </script>
@@ -32,18 +44,18 @@ async function handleRegister() {
       <q-page class="flex flex-center bg-grey-1">
         <q-card style="width: 400px; max-width: 90vw">
           <q-card-section class="bg-green-8 text-white text-center">
-            <div class="flex row items-center justify-center text-h5 text-weight-bold">
+            <div
+              class="flex row items-center justify-center text-h5 text-weight-bold"
+            >
               <img
                 src="/agri-sense-white.png"
                 alt="AgriSense Logo"
                 height="32px"
                 class="q-mr-sm"
-              >
+              />
               AgriSense
             </div>
-            <div class="text-subtitle2 q-mt-sm">
-              Yeni Hesap Oluşturun
-            </div>
+            <div class="text-subtitle2 q-mt-sm">Yeni Hesap Oluşturun</div>
           </q-card-section>
 
           <q-card-section>
@@ -73,6 +85,18 @@ async function handleRegister() {
               </q-input>
 
               <q-input
+                v-model="username"
+                outlined
+                label="Kullanıcı Adı"
+                class="q-mb-md"
+                :rules="[(val: string) => !!val || 'Kullanıcı adı gerekli']"
+              >
+                <template #prepend>
+                  <q-icon name="alternate_email" />
+                </template>
+              </q-input>
+
+              <q-input
                 v-model="email"
                 outlined
                 type="email"
@@ -90,14 +114,57 @@ async function handleRegister() {
                 outlined
                 type="password"
                 label="Şifre"
-                :rules="[(val: string) => val.length >= 6 || 'Şifre en az 6 karakter olmalı']"
+                class="q-mb-md"
+                :rules="[
+                  (val: string) =>
+                    val.length >= 6 || 'Şifre en az 6 karakter olmalı',
+                ]"
               >
                 <template #prepend>
                   <q-icon name="lock" />
                 </template>
               </q-input>
 
-              <q-banner v-if="error" class="bg-negative text-white q-mt-md" rounded>
+              <q-input
+                v-model="phone"
+                outlined
+                label="Telefon"
+                class="q-mb-md"
+                hint="Opsiyonel"
+              >
+                <template #prepend>
+                  <q-icon name="phone" />
+                </template>
+              </q-input>
+
+              <q-input
+                v-model="language"
+                outlined
+                label="Dil"
+                class="q-mb-md"
+                hint="Opsiyonel — Örn: tr, en"
+              >
+                <template #prepend>
+                  <q-icon name="language" />
+                </template>
+              </q-input>
+
+              <q-input
+                v-model="country"
+                outlined
+                label="Ülke"
+                hint="Opsiyonel — Örn: Türkiye"
+              >
+                <template #prepend>
+                  <q-icon name="public" />
+                </template>
+              </q-input>
+
+              <q-banner
+                v-if="error"
+                class="bg-negative text-white q-mt-md"
+                rounded
+              >
                 {{ error }}
               </q-banner>
 
@@ -128,7 +195,7 @@ async function handleRegister() {
 </template>
 
 <style scoped>
-  .select-none {
+.select-none {
   user-select: none !important;
 }
 </style>

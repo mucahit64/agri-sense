@@ -16,10 +16,10 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody<SensorCreate>(event)
 
-  if (!body.device_id || !body.name || !body.type) {
+  if (!body.device_id || !body.name || !body.type_id || !body.unit_id) {
     throw createError({
       statusCode: 400,
-      message: 'Cihaz ID, sensör adı ve sensör tipi gerekli',
+      message: 'Cihaz ID, sensör adı, sensör tipi ve birim gerekli',
     })
   }
 
@@ -40,12 +40,12 @@ export default defineEventHandler(async (event) => {
     const now = new Date().toISOString()
 
     const sensor = await db
-      .prepare('INSERT INTO sensors (device_id, name, type, unit, min_value, max_value, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *')
+      .prepare('INSERT INTO sensors (device_id, name, type_id, unit_id, min_value, max_value, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *')
       .bind(
         body.device_id,
         body.name,
-        body.type,
-        body.unit || null,
+        body.type_id,
+        body.unit_id,
         body.min_value || null,
         body.max_value || null,
         now,

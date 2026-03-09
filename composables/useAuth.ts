@@ -19,11 +19,11 @@ export function useAuth() {
     }
   }
 
-  const register = async (name: string, surname: string, email: string, password: string) => {
+  const register = async (data: { name: string, surname: string, username: string, email: string, password: string, phone?: string, language?: string, country?: string }) => {
     try {
       const response = await $fetch('/api/auth/register', {
         method: 'POST',
-        body: { name, surname, email, password },
+        body: data,
       })
 
       user.value = response.user

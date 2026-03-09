@@ -100,6 +100,7 @@ async function handleLogout() {
         <!-- DESKTOP MENU -->
         <div v-if="$q.screen.gt.sm" class="row items-center q-gutter-sm">
           <q-btn flat label="Dashboard" />
+          <q-btn flat label="Tarlalar" to="/fields" />
           <q-btn flat label="Cihazlar" to="/devices" />
           <q-btn flat label="Sensörler" to="/sensors" />
 
@@ -132,6 +133,10 @@ async function handleLogout() {
 
               <q-item clickable>
                 <q-item-section>Dashboard</q-item-section>
+              </q-item>
+
+              <q-item clickable to="/fields">
+                <q-item-section>Tarlalar</q-item-section>
               </q-item>
 
               <q-item clickable to="/devices">
@@ -313,6 +318,14 @@ async function handleLogout() {
               <q-card-section>
                 <div class="text-h6 q-mb-md">Hızlı Erişim</div>
                 <q-list>
+                  <q-item clickable to="/fields">
+                    <q-item-section avatar>
+                      <q-icon name="landscape" color="green-8" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Tarlalarım</q-item-label>
+                    </q-item-section>
+                  </q-item>
                   <q-item clickable to="/devices">
                     <q-item-section avatar>
                       <q-icon name="add_circle" color="green-8" />

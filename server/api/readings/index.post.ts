@@ -34,9 +34,29 @@ export default defineEventHandler(async (event) => {
 
     if (!sensor) {
       const now = new Date().toISOString()
+      // Sensör tipini bul, yoksa ilk tipi kullan
+      let sensorType = await db
+        .prepare('SELECT id FROM sensor_types WHERE name = ?')
+        .bind(body.sensor_type || 'temperature')
+        .first() as { id: number } | null
+
+      if (!sensorType) {
+        sensorType = await db
+          .prepare('SELECT id FROM sensor_types LIMIT 1')
+          .first() as { id: number } | null
+      }
+
+      // Varsayılan birimi bul
+      const defaultUnit = await db
+        .prepare('SELECT id FROM units WHERE sensor_type_id = ? AND is_default = 1 LIMIT 1')
+        .bind(sensorType!.id)
+        .first() as { id: number } | null
+
+      const unitId = defaultUnit?.id || 1
+
       sensor = await db
-        .prepare('INSERT INTO sensors (device_id, name, type, created_at, updated_at) VALUES (?, ?, ?, ?, ?) RETURNING *')
-        .bind(device.id, body.sensor_name, body.sensor_type, now, now)
+        .prepare('INSERT INTO sensors (device_id, name, type_id, unit_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING *')
+        .bind(device.id, body.sensor_name, sensorType!.id, unitId, now, now)
         .first() as { id: number } | null
     }
 

@@ -18,7 +18,14 @@ export default defineEventHandler(async (event) => {
   const sensorId = query.sensor_id
 
   try {
-    let sql = 'SELECT sensors.* FROM sensors JOIN devices ON sensors.device_id = devices.id WHERE devices.user_id = ?'
+    let sql = `SELECT sensors.*, 
+        sensor_types.name as type_name, sensor_types.label as type_label, sensor_types.icon as type_icon,
+        units.name as unit_name, units.symbol as unit_symbol
+      FROM sensors 
+      JOIN devices ON sensors.device_id = devices.id 
+      LEFT JOIN sensor_types ON sensors.type_id = sensor_types.id
+      LEFT JOIN units ON sensors.unit_id = units.id
+      WHERE devices.user_id = ?`
     const params: any[] = [userId]
 
     if (deviceId) {

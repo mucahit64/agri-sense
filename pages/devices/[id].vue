@@ -1,141 +1,176 @@
 <script setup lang="ts">
-import type { Device, Sensor } from "~/types";
-import { Dialog, Notify } from "quasar";
+import type { Device, Sensor } from '~/types'
+import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
   middleware: async (_to, _from) => {
-    const { checkAuth } = useAuth();
-    const isAuth = await checkAuth();
+    const { checkAuth } = useAuth()
+    const isAuth = await checkAuth()
     if (!isAuth) {
-      return navigateTo("/auth/login");
+      return navigateTo('/auth/login')
     }
   },
-});
+})
 
-const route = useRoute();
-const router = useRouter();
-const { user, logout } = useAuth();
+const route = useRoute()
+const router = useRouter()
+const { user, logout } = useAuth()
 
-const deviceId = route.params.id as string;
-const device = ref<Device | null>(null);
-const sensors = ref<Sensor[]>([]);
-const loading = ref(true);
-const showAddDialog = ref(false);
+const deviceId = route.params.id as string
+const device = ref<Device | null>(null)
+const sensors = ref<Sensor[]>([])
+const loading = ref(true)
+const showAddDialog = ref(false)
 
 const newSensor = ref({
-  name: "",
-  type: "temperature",
-  unit: "",
+  name: '',
+  type_id: null as number | null,
+  unit_id: null as number | null,
   min_value: undefined as number | undefined,
   max_value: undefined as number | undefined,
-});
+})
 
-const sensorTypes = [
-  { value: "temperature", label: "Sıcaklık", icon: "thermostat", unit: "°C" },
-  { value: "humidity", label: "Nem", icon: "water_drop", unit: "%" },
-  { value: "soil_moisture", label: "Toprak Nemi", icon: "opacity", unit: "%" },
-  { value: "ph", label: "pH", icon: "science", unit: "pH" },
-  { value: "light", label: "Işık", icon: "wb_sunny", unit: "lux" },
-  { value: "pressure", label: "Basınç", icon: "compress", unit: "hPa" },
-];
+const sensorTypes = ref<{ id: number, name: string, label: string, icon: string | null }[]>([])
+const availableUnits = ref<{ id: number, name: string, symbol: string, is_default: number }[]>([])
+
+async function loadSensorTypes() {
+  try {
+    const response = await $fetch<{ success: boolean, sensorTypes: any[] }>('/api/sensor-types')
+    sensorTypes.value = response.sensorTypes
+  }
+  catch (error) {
+    console.error('Sensör tipleri yüklenemedi:', error)
+  }
+}
+
+async function loadUnitsForType(typeId: number) {
+  try {
+    const response = await $fetch<{ success: boolean, units: any[] }>(`/api/units?sensor_type_id=${typeId}`)
+    availableUnits.value = response.units
+    // Varsayılan birimi seç
+    const defaultUnit = response.units.find((u: any) => u.is_default === 1)
+    if (defaultUnit) {
+      newSensor.value.unit_id = defaultUnit.id
+    }
+    else if (response.units.length > 0) {
+      newSensor.value.unit_id = response.units[0].id
+    }
+  }
+  catch (error) {
+    console.error('Birimler yüklenemedi:', error)
+  }
+}
+
+watch(() => newSensor.value.type_id, (newTypeId) => {
+  if (newTypeId) {
+    loadUnitsForType(newTypeId)
+  }
+  else {
+    availableUnits.value = []
+    newSensor.value.unit_id = null
+  }
+})
 
 async function loadDevice() {
   try {
-    const response = await $fetch<{ success: boolean; device: Device }>(
+    const response = await $fetch<{ success: boolean, device: Device }>(
       `/api/devices/${deviceId}`,
-    );
-    device.value = response.device;
-  } catch (error) {
-    console.error("Cihaz yüklenemedi:", error);
-    router.push("/devices");
+    )
+    device.value = response.device
+  }
+  catch (error) {
+    console.error('Cihaz yüklenemedi:', error)
+    router.push('/devices')
   }
 }
 
 async function loadSensors() {
   try {
-    loading.value = true;
-    const response = await $fetch(`/api/sensors?device_id=${deviceId}`);
-    sensors.value = response.sensors;
-  } catch (error) {
-    console.error("Sensörler yüklenemedi:", error);
-  } finally {
-    loading.value = false;
+    loading.value = true
+    const response = await $fetch<{ success: boolean, sensors: Sensor[] }>(`/api/sensors?device_id=${deviceId}`)
+    sensors.value = response.sensors
+  }
+  catch (error) {
+    console.error('Sensörler yüklenemedi:', error)
+  }
+  finally {
+    loading.value = false
   }
 }
 
 async function addSensor() {
   try {
-    const selectedType = sensorTypes.find(
-      (t) => t.value === newSensor.value.type,
-    );
-    await $fetch("/api/sensors", {
-      method: "POST",
+    await $fetch('/api/sensors', {
+      method: 'POST',
       body: {
         device_id: Number(deviceId),
         name: newSensor.value.name,
-        type: newSensor.value.type,
-        unit: newSensor.value.unit || selectedType?.unit,
+        type_id: newSensor.value.type_id,
+        unit_id: newSensor.value.unit_id,
         min_value: newSensor.value.min_value,
         max_value: newSensor.value.max_value,
       },
-    });
-    showAddDialog.value = false;
+    })
+    showAddDialog.value = false
     newSensor.value = {
-      name: "",
-      type: "temperature",
-      unit: "",
+      name: '',
+      type_id: null,
+      unit_id: null,
       min_value: undefined,
       max_value: undefined,
-    };
-    await loadSensors();
-  } catch (error: any) {
+    }
+    await loadSensors()
+  }
+  catch (error: any) {
     Notify.create({
-      type: "negative",
-      message: error.data?.message || "Sensör eklenemedi",
-    });
+      type: 'negative',
+      message: error.data?.message || 'Sensör eklenemedi',
+    })
   }
 }
 
 async function deleteSensor(id: number) {
   Dialog.create({
-    title: "Onay",
-    message: "Bu sensörü silmek istediğinizden emin misiniz?",
+    title: 'Onay',
+    message: 'Bu sensörü silmek istediğinizden emin misiniz?',
     cancel: true,
     persistent: true,
   })
     .onOk(async () => {
       try {
-        await $fetch(`/api/sensors/${id}`, { method: "DELETE" });
-        await loadSensors();
-      } catch (error: any) {
+        await $fetch(`/api/sensors/${id}`, { method: 'DELETE' })
+        await loadSensors()
+      }
+      catch (error: any) {
         Notify.create({
-          type: "negative",
-          message: error.data?.message || "Sensör silinemedi",
-        });
+          type: 'negative',
+          message: error.data?.message || 'Sensör silinemedi',
+        })
       }
     })
     .onCancel(() => {
       // Kullanıcı iptal etti
-    });
+    })
 }
 
-function getSensorIcon(type: string) {
-  return sensorTypes.find((t) => t.value === type)?.icon || "sensors";
+function getSensorIcon(sensor: Sensor) {
+  return sensor.type_icon || 'sensors'
 }
 
-function getSensorLabel(type: string) {
-  return sensorTypes.find((t) => t.value === type)?.label || type;
+function getSensorLabel(sensor: Sensor) {
+  return sensor.type_label || sensor.type_name || ''
 }
 
 async function handleLogout() {
-  await logout();
-  router.push("/");
+  await logout()
+  router.push('/')
 }
 
 onMounted(() => {
-  loadDevice();
-  loadSensors();
-});
+  loadDevice()
+  loadSensors()
+  loadSensorTypes()
+})
 </script>
 
 <template>
@@ -162,7 +197,7 @@ onMounted(() => {
             alt="AgriSense Logo"
             :height="$q.screen.lt.md ? 26 : 32"
             class="q-mr-sm"
-          />
+          >
 
           <!-- SADECE DESKTOP -->
           <span class="gt-sm">
@@ -173,6 +208,7 @@ onMounted(() => {
         <!-- DESKTOP MENU -->
         <div v-if="$q.screen.gt.sm" class="row items-center q-gutter-sm">
           <q-btn flat label="Dashboard" to="/dashboard" />
+          <q-btn flat label="Tarlalar" to="/fields" />
           <q-btn flat label="Cihazlar" to="/devices" />
 
           <q-space />
@@ -205,6 +241,10 @@ onMounted(() => {
                 <q-item-section>Dashboard</q-item-section>
               </q-item>
 
+              <q-item clickable to="/fields">
+                <q-item-section>Tarlalar</q-item-section>
+              </q-item>
+
               <q-item clickable to="/devices">
                 <q-item-section>Cihazlar</q-item-section>
               </q-item>
@@ -212,7 +252,9 @@ onMounted(() => {
               <q-separator />
 
               <q-item clickable @click="handleLogout">
-                <q-item-section class="text-negative"> Çıkış </q-item-section>
+                <q-item-section class="text-negative">
+                  Çıkış
+                </q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -224,19 +266,21 @@ onMounted(() => {
       <q-page class="q-pa-md">
         <q-card class="q-mb-md">
           <q-card-section>
-            <div class="text-h6">Cihaz Bilgileri</div>
+            <div class="text-h6">
+              Cihaz Bilgileri
+            </div>
             <div class="text-caption text-grey-7">
               Tip: {{ device?.type || "-" }} | Konum:
               {{ device?.location || "-" }}
             </div>
             <div class="q-mt-sm">
               <q-badge
-                :color="device?.status === 'active' ? 'positive' : 'grey'"
+                :color="device?.status === 1 ? 'positive' : 'grey'"
               >
                 {{
-                  device?.status === "active"
+                  device?.status === 1
                     ? "Aktif"
-                    : device?.status || "Bilinmiyor"
+                    : "Pasif"
                 }}
               </q-badge>
             </div>
@@ -244,7 +288,9 @@ onMounted(() => {
         </q-card>
 
         <div class="row items-center q-mb-md">
-          <div class="text-h6 text-weight-bold">Sensörler</div>
+          <div class="text-h6 text-weight-bold">
+            Sensörler
+          </div>
           <q-space />
           <q-btn
             unelevated
@@ -261,7 +307,9 @@ onMounted(() => {
 
         <div v-else-if="sensors.length === 0" class="text-center q-pa-xl">
           <q-icon name="sensors" size="80px" color="grey-5" />
-          <div class="text-h6 text-grey-7 q-mt-md">Henüz sensör eklenmemiş</div>
+          <div class="text-h6 text-grey-7 q-mt-md">
+            Henüz sensör eklenmemiş
+          </div>
           <q-btn
             flat
             color="green-8"
@@ -281,16 +329,16 @@ onMounted(() => {
               <q-card-section>
                 <div class="row items-center">
                   <q-icon
-                    :name="getSensorIcon(sensor.type || '')"
+                    :name="getSensorIcon(sensor)"
                     size="32px"
                     color="green-8"
                   />
                   <div class="q-ml-md">
                     <div class="text-subtitle1 text-weight-bold">
-                      {{ sensor.name || getSensorLabel(sensor.type || "") }}
+                      {{ sensor.name || getSensorLabel(sensor) }}
                     </div>
                     <div class="text-caption text-grey-7">
-                      {{ getSensorLabel(sensor.type || "") }}
+                      {{ getSensorLabel(sensor) }}
                     </div>
                   </div>
                 </div>
@@ -300,7 +348,7 @@ onMounted(() => {
 
               <q-card-section>
                 <div class="text-caption text-grey-7">
-                  Birim: {{ sensor.unit || "-" }}
+                  Birim: {{ sensor.unit_symbol || "-" }}
                 </div>
                 <div class="text-caption text-grey-7">
                   Min:
@@ -345,7 +393,9 @@ onMounted(() => {
         <q-dialog v-model="showAddDialog">
           <q-card style="min-width: 400px">
             <q-card-section>
-              <div class="text-h6">Yeni Sensör Ekle</div>
+              <div class="text-h6">
+                Yeni Sensör Ekle
+              </div>
             </q-card-section>
 
             <q-card-section>
@@ -358,21 +408,29 @@ onMounted(() => {
                 :rules="[(val) => !!val || 'Sensör adı zorunludur']"
               />
               <q-select
-                v-model="newSensor.type"
+                v-model="newSensor.type_id"
                 outlined
                 :options="sensorTypes"
-                option-value="value"
+                option-value="id"
                 option-label="label"
                 emit-value
                 map-options
                 label="Sensör Tipi *"
+                :rules="[(val: number | null) => !!val || 'Sensör tipi zorunludur']"
               />
-              <q-input
-                v-model="newSensor.unit"
+              <q-select
+                v-model="newSensor.unit_id"
                 outlined
-                label="Birim"
+                :options="availableUnits"
+                option-value="id"
+                :option-label="(opt: any) => `${opt.name} (${opt.symbol})`"
+                emit-value
+                map-options
+                label="Birim *"
                 class="q-mt-md"
-                hint="Otomatik doldurulur"
+                :disable="!newSensor.type_id"
+                :hint="!newSensor.type_id ? 'Önce sensör tipi seçin' : ''"
+                :rules="[(val: number | null) => !!val || 'Birim zorunludur']"
               />
               <q-input
                 v-model.number="newSensor.min_value"
