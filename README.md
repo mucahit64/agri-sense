@@ -74,11 +74,11 @@ bun run preview
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
-Backend     ->  Cloudflare Workers
-DB          ->  D1
-Web         ->  Quasar
-Mobile      ->  Flutter
-Auth        ->  JWT + Refresh
-IoT         ->  API Key + HMAC
-CI/CD       ->  GitHub Actions
-Monitoring  ->  Cloudflare Analytics
+Backend -> Cloudflare Workers
+DB -> D1
+Web -> Quasar
+Mobile -> Flutter
+Auth -> JWT + Refresh
+IoT -> API Key + HMAC
+CI/CD -> GitHub Actions
+Monitoring -> Cloudflare Analytics

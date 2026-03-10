@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import type { WeatherForecastItem, WeatherForecastResponse } from '~/types'
+
 const { user, logout, checkAuth } = useAuth()
 const router = useRouter()
 
-const weather = ref<any>(null)
+const weather = ref<WeatherForecastResponse | null>(null)
 const weatherLoading = ref(false)
+const currentForecast = computed<WeatherForecastItem | null>(() => weather.value?.list?.[0] ?? null)
 
 onMounted(async () => {
   const isAuthenticated = await checkAuth()
@@ -60,6 +63,14 @@ function formatDateTime(timestamp: number) {
 function getWindDirection(deg: number) {
   const directions = ['K', 'KD', 'D', 'GD', 'G', 'GB', 'B', 'KB']
   return directions[Math.round(deg / 45) % 8]
+}
+
+function getWeatherIcon(item: WeatherForecastItem) {
+  return item.weather?.[0]?.icon || '01d'
+}
+
+function getWeatherDescription(item: WeatherForecastItem) {
+  return item.weather?.[0]?.description || '-'
 }
 
 async function handleLogout() {
@@ -184,7 +195,7 @@ async function refreshWeather() {
         </div>
 
         <!-- Weather Content -->
-        <div v-else-if="weather && weather.list" class="q-gutter-md">
+        <div v-else-if="weather && currentForecast" class="q-gutter-md">
           <!-- Current Weather Card -->
           <q-card>
             <q-card-section>
@@ -196,17 +207,17 @@ async function refreshWeather() {
               <div class="row items-center">
                 <div class="col-12 col-md-4 text-center">
                   <q-icon
-                    :name="`img:https://openweathermap.org/img/wn/${weather.list[0].weather[0].icon}@4x.png`"
+                    :name="`img:https://openweathermap.org/img/wn/${getWeatherIcon(currentForecast)}@4x.png`"
                     size="140px"
                   />
                   <div class="text-h2 text-weight-bold text-green-8">
-                    {{ Math.round(weather.list[0].main.temp) }}°C
+                    {{ Math.round(currentForecast.main.temp) }}°C
                   </div>
                   <div class="text-h6 text-grey-7 text-capitalize">
-                    {{ weather.list[0].weather[0].description }}
+                    {{ getWeatherDescription(currentForecast) }}
                   </div>
                   <div class="text-caption text-grey-6 q-mt-sm">
-                    Hissedilen: {{ Math.round(weather.list[0].main.feels_like) }}°C
+                    Hissedilen: {{ Math.round(currentForecast.main.feels_like) }}°C
                   </div>
                 </div>
 
@@ -220,7 +231,7 @@ async function refreshWeather() {
                             Min / Max
                           </div>
                           <div class="text-h6 text-weight-bold">
-                            {{ Math.round(weather.list[0].main.temp_min) }}° / {{ Math.round(weather.list[0].main.temp_max) }}°
+                            {{ Math.round(currentForecast.main.temp_min) }}° / {{ Math.round(currentForecast.main.temp_max) }}°
                           </div>
                         </q-card-section>
                       </q-card>
@@ -233,7 +244,7 @@ async function refreshWeather() {
                             Nem Oranı
                           </div>
                           <div class="text-h6 text-weight-bold">
-                            %{{ weather.list[0].main.humidity }}
+                            %{{ currentForecast.main.humidity }}
                           </div>
                         </q-card-section>
                       </q-card>
@@ -247,10 +258,10 @@ async function refreshWeather() {
                           </div>
                           <div class="row justify-center items-center">
                             <div class="text-h6 text-weight-bold">
-                              {{ Math.round(weather.list[0].wind.speed * 3.6) }} km/h
+                              {{ Math.round(currentForecast.wind.speed * 3.6) }} km/h
                             </div>
                             <div class="text-h6 text-weight-bold q-ml-sm">
-                              {{ getWindDirection(weather.list[0].wind.deg) }}
+                              {{ getWindDirection(currentForecast.wind.deg) }}
                             </div>
                           </div>
                         </q-card-section>
@@ -264,7 +275,7 @@ async function refreshWeather() {
                             Basınç
                           </div>
                           <div class="text-h6 text-weight-bold">
-                            {{ weather.list[0].main.pressure }} hPa
+                            {{ currentForecast.main.pressure }} hPa
                           </div>
                         </q-card-section>
                       </q-card>
@@ -277,7 +288,7 @@ async function refreshWeather() {
                             Bulutluluk
                           </div>
                           <div class="text-h6 text-weight-bold">
-                            %{{ weather.list[0].clouds.all }}
+                            %{{ currentForecast.clouds.all }}
                           </div>
                         </q-card-section>
                       </q-card>
@@ -290,7 +301,7 @@ async function refreshWeather() {
                             Görüş Mesafesi
                           </div>
                           <div class="text-h6 text-weight-bold">
-                            {{ Math.round(weather.list[0].visibility / 1000) }} km
+                            {{ Math.round(currentForecast.visibility / 1000) }} km
                           </div>
                         </q-card-section>
                       </q-card>
@@ -324,14 +335,14 @@ async function refreshWeather() {
                         {{ formatDate(item.dt) }}
                       </div>
                       <q-icon
-                        :name="`img:https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`"
+                        :name="`img:https://openweathermap.org/img/wn/${getWeatherIcon(item)}@2x.png`"
                         size="56px"
                       />
                       <div class="text-h5 text-weight-bold">
                         {{ Math.round(item.main.temp) }}°C
                       </div>
                       <div class="text-caption text-grey-7 text-capitalize">
-                        {{ item.weather[0].description }}
+                        {{ getWeatherDescription(item) }}
                       </div>
                       <q-separator class="q-my-sm" />
                       <div class="row text-caption text-grey-6">
@@ -374,7 +385,7 @@ async function refreshWeather() {
                   { name: 'pressure', label: 'Basınç', field: (row: any) => `${row.main.pressure} hPa`, align: 'center' },
                   { name: 'clouds', label: 'Bulut', field: (row: any) => `%${row.clouds.all}`, align: 'center' },
                   { name: 'rain', label: 'Yağış Olasılığı', field: (row: any) => `%${Math.round(row.pop * 100)}`, align: 'center' },
-                  { name: 'desc', label: 'Durum', field: (row: any) => row.weather[0].description, align: 'left' },
+                  { name: 'desc', label: 'Durum', field: (row: any) => row.weather?.[0]?.description || '-', align: 'left' },
                 ]"
                 row-key="dt"
                 flat

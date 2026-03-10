@@ -60,8 +60,8 @@ export interface Sensor {
 export interface SensorType {
   id: number
   name: string
-  label: string
-  icon: string | null
+  label?: string
+  icon?: string | null
   created_at: string | null
 }
 

@@ -1,136 +1,141 @@
 <script setup lang="ts">
-import type { Device, Field } from "~/types";
-import { Dialog, Notify } from "quasar";
+import type { Device, Field } from '~/types'
+import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
   middleware: async (_to, _from) => {
-    const { checkAuth } = useAuth();
-    const isAuth = await checkAuth();
+    const { checkAuth } = useAuth()
+    const isAuth = await checkAuth()
     if (!isAuth) {
-      return navigateTo("/auth/login");
+      return navigateTo('/auth/login')
     }
   },
-});
+})
 
-const route = useRoute();
-const router = useRouter();
-const { user, logout } = useAuth();
+const route = useRoute()
+const router = useRouter()
+const { user, logout } = useAuth()
 
-const fieldId = route.params.id as string;
-const field = ref<Field | null>(null);
-const devices = ref<Device[]>([]);
-const loading = ref(true);
-const editing = ref(false);
+const fieldId = route.params.id as string
+const field = ref<Field | null>(null)
+const devices = ref<Device[]>([])
+const loading = ref(true)
+const editing = ref(false)
 
 const editForm = ref({
-  name: "",
+  name: '',
   lat: undefined as number | undefined,
   lon: undefined as number | undefined,
   area_m2: undefined as number | undefined,
-  soil_type: "",
+  soil_type: '',
   is_active: 1,
-});
+})
 
 const soilTypes = [
-  { value: "killi", label: "Killi" },
-  { value: "kumlu", label: "Kumlu" },
-  { value: "tınlı", label: "Tınlı" },
-  { value: "killi-tınlı", label: "Killi Tınlı" },
-  { value: "kumlu-tınlı", label: "Kumlu Tınlı" },
-  { value: "humuslu", label: "Humuslu" },
-  { value: "kireçli", label: "Kireçli" },
-  { value: "diğer", label: "Diğer" },
-];
+  { value: 'killi', label: 'Killi' },
+  { value: 'kumlu', label: 'Kumlu' },
+  { value: 'tınlı', label: 'Tınlı' },
+  { value: 'killi-tınlı', label: 'Killi Tınlı' },
+  { value: 'kumlu-tınlı', label: 'Kumlu Tınlı' },
+  { value: 'humuslu', label: 'Humuslu' },
+  { value: 'kireçli', label: 'Kireçli' },
+  { value: 'diğer', label: 'Diğer' },
+]
 
 async function loadField() {
   try {
-    const response = await $fetch<{ success: boolean; field: Field }>(
+    const response = await $fetch<{ success: boolean, field: Field }>(
       `/api/fields/${fieldId}`,
-    );
-    field.value = response.field;
+    )
+    field.value = response.field
     editForm.value = {
-      name: response.field.name || "",
+      name: response.field.name || '',
       lat: response.field.lat || undefined,
       lon: response.field.lon || undefined,
       area_m2: response.field.area_m2 || undefined,
-      soil_type: response.field.soil_type || "",
+      soil_type: response.field.soil_type || '',
       is_active: response.field.is_active,
-    };
-  } catch (error) {
-    console.error("Tarla yüklenemedi:", error);
-    router.push("/fields");
+    }
+  }
+  catch (error) {
+    console.error('Tarla yüklenemedi:', error)
+    router.push('/fields')
   }
 }
 
 async function loadDevices() {
   try {
-    loading.value = true;
-    const response = await $fetch<{ success: boolean; devices: Device[] }>(
-      "/api/devices",
-    );
+    loading.value = true
+    const response = await $fetch<{ success: boolean, devices: Device[] }>(
+      '/api/devices',
+    )
     // Tarlaya bağlı cihazları filtrele
     devices.value = response.devices.filter(
-      (d) => d.field_id === Number(fieldId),
-    );
-  } catch (error) {
-    console.error("Cihazlar yüklenemedi:", error);
-  } finally {
-    loading.value = false;
+      d => d.field_id === Number(fieldId),
+    )
+  }
+  catch (error) {
+    console.error('Cihazlar yüklenemedi:', error)
+  }
+  finally {
+    loading.value = false
   }
 }
 
 async function saveField() {
   try {
     await $fetch(`/api/fields/${fieldId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: editForm.value,
-    });
-    editing.value = false;
-    await loadField();
+    })
+    editing.value = false
+    await loadField()
     Notify.create({
-      type: "positive",
-      message: "Tarla güncellendi",
-    });
-  } catch (error: any) {
+      type: 'positive',
+      message: 'Tarla güncellendi',
+    })
+  }
+  catch (error: any) {
     Notify.create({
-      type: "negative",
-      message: error.data?.message || "Tarla güncellenemedi",
-    });
+      type: 'negative',
+      message: error.data?.message || 'Tarla güncellenemedi',
+    })
   }
 }
 
 async function deleteField() {
   Dialog.create({
-    title: "Onay",
-    message: "Bu tarlayı silmek istediğinizden emin misiniz?",
+    title: 'Onay',
+    message: 'Bu tarlayı silmek istediğinizden emin misiniz?',
     cancel: true,
     persistent: true,
   }).onOk(async () => {
     try {
-      await $fetch(`/api/fields/${fieldId}`, { method: "DELETE" });
-      router.push("/fields");
+      await $fetch(`/api/fields/${fieldId}`, { method: 'DELETE' })
+      router.push('/fields')
       Notify.create({
-        type: "positive",
-        message: "Tarla silindi",
-      });
-    } catch (error: any) {
-      Notify.create({
-        type: "negative",
-        message: error.data?.message || "Tarla silinemedi",
-      });
+        type: 'positive',
+        message: 'Tarla silindi',
+      })
     }
-  });
+    catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.data?.message || 'Tarla silinemedi',
+      })
+    }
+  })
 }
 
 async function handleLogout() {
-  await logout();
-  router.push("/");
+  await logout()
+  router.push('/')
 }
 
 onMounted(() => {
-  loadField();
-  loadDevices();
-});
+  loadField()
+  loadDevices()
+})
 </script>
 
 <template>
@@ -155,7 +160,7 @@ onMounted(() => {
             alt="AgriSense Logo"
             :height="$q.screen.lt.md ? 26 : 32"
             class="q-mr-sm"
-          />
+          >
           <span class="gt-sm">
             {{ field?.name || "Tarla Detayı" }}
           </span>
@@ -205,7 +210,9 @@ onMounted(() => {
               <q-separator />
 
               <q-item clickable @click="handleLogout">
-                <q-item-section class="text-negative"> Çıkış </q-item-section>
+                <q-item-section class="text-negative">
+                  Çıkış
+                </q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -219,7 +226,9 @@ onMounted(() => {
         <q-card class="q-mb-md">
           <q-card-section>
             <div class="row items-center">
-              <div class="text-h6">Tarla Bilgileri</div>
+              <div class="text-h6">
+                Tarla Bilgileri
+              </div>
               <q-space />
               <q-btn
                 v-if="!editing"
@@ -321,7 +330,9 @@ onMounted(() => {
 
         <!-- Tarlaya Bağlı Cihazlar -->
         <div class="row items-center q-mb-md">
-          <div class="text-h6 text-weight-bold">Bağlı Cihazlar</div>
+          <div class="text-h6 text-weight-bold">
+            Bağlı Cihazlar
+          </div>
         </div>
 
         <div v-if="loading" class="text-center q-pa-xl">

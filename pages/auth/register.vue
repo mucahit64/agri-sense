@@ -1,21 +1,21 @@
 <script setup lang="ts">
-const { register } = useAuth();
-const router = useRouter();
+const { register } = useAuth()
+const router = useRouter()
 
-const name = ref("");
-const surname = ref("");
-const username = ref("");
-const email = ref("");
-const password = ref("");
-const phone = ref("");
-const language = ref("");
-const country = ref("");
-const loading = ref(false);
-const error = ref("");
+const name = ref('')
+const surname = ref('')
+const username = ref('')
+const email = ref('')
+const password = ref('')
+const phone = ref('')
+const loading = ref(false)
+const error = ref('')
+
+const showPassword = ref(false)
 
 async function handleRegister() {
-  loading.value = true;
-  error.value = "";
+  loading.value = true
+  error.value = ''
 
   const result = await register({
     name: name.value,
@@ -24,18 +24,19 @@ async function handleRegister() {
     email: email.value,
     password: password.value,
     phone: phone.value || undefined,
-    language: language.value || undefined,
-    country: country.value || undefined,
-  });
+  })
 
-  loading.value = false;
+  loading.value = false
 
   if (result.success) {
-    router.push("/dashboard");
-  } else {
-    error.value = result.error || "Kayıt başarısız";
+    router.push('/dashboard')
+  }
+  else {
+    error.value = result.error || 'Kayıt başarısız'
   }
 }
+
+// Eğer
 </script>
 
 <template>
@@ -52,10 +53,12 @@ async function handleRegister() {
                 alt="AgriSense Logo"
                 height="32px"
                 class="q-mr-sm"
-              />
+              >
               AgriSense
             </div>
-            <div class="text-subtitle2 q-mt-sm">Yeni Hesap Oluşturun</div>
+            <div class="text-subtitle2 q-mt-sm">
+              Yeni Hesap Oluşturun
+            </div>
           </q-card-section>
 
           <q-card-section>
@@ -109,19 +112,22 @@ async function handleRegister() {
                 </template>
               </q-input>
 
+              // Şifre kısmına gizle ve göster butonu ekle
               <q-input
                 v-model="password"
                 outlined
-                type="password"
+                :type="showPassword ? 'text' : 'password'"
                 label="Şifre"
-                class="q-mb-md"
-                :rules="[
-                  (val: string) =>
-                    val.length >= 6 || 'Şifre en az 6 karakter olmalı',
-                ]"
               >
                 <template #prepend>
                   <q-icon name="lock" />
+                </template>
+                <template #append>
+                  <q-icon
+                    :name="showPassword ? 'visibility_off' : 'visibility'"
+                    class="cursor-pointer"
+                    @click="showPassword = !showPassword"
+                  />
                 </template>
               </q-input>
 
@@ -134,29 +140,6 @@ async function handleRegister() {
               >
                 <template #prepend>
                   <q-icon name="phone" />
-                </template>
-              </q-input>
-
-              <q-input
-                v-model="language"
-                outlined
-                label="Dil"
-                class="q-mb-md"
-                hint="Opsiyonel — Örn: tr, en"
-              >
-                <template #prepend>
-                  <q-icon name="language" />
-                </template>
-              </q-input>
-
-              <q-input
-                v-model="country"
-                outlined
-                label="Ülke"
-                hint="Opsiyonel — Örn: Türkiye"
-              >
-                <template #prepend>
-                  <q-icon name="public" />
                 </template>
               </q-input>
 

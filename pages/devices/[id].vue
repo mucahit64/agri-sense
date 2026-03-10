@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Device, Sensor } from '~/types'
+import type { Device, Sensor, SensorType } from '~/types'
 import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
@@ -30,12 +30,12 @@ const newSensor = ref({
   max_value: undefined as number | undefined,
 })
 
-const sensorTypes = ref<{ id: number, name: string, label: string, icon: string | null }[]>([])
+const sensorTypes = ref<SensorType[]>([])
 const availableUnits = ref<{ id: number, name: string, symbol: string, is_default: number }[]>([])
 
 async function loadSensorTypes() {
   try {
-    const response = await $fetch<{ success: boolean, sensorTypes: any[] }>('/api/sensor-types')
+    const response = await $fetch<{ success: boolean, sensorTypes: SensorType[] }>('/api/sensor-types')
     sensorTypes.value = response.sensorTypes
   }
   catch (error) {

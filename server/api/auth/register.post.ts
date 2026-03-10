@@ -1,6 +1,6 @@
 export default defineEventHandler(async (event) => {
   const db = useDB(event)
-  const { name, surname, username, email, password, phone, language, country } = await readBody(event)
+  const { name, surname, username, email, password, phone } = await readBody(event)
 
   if (!name || !surname || !username || !email || !password) {
     throw createError({
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     // Yeni kullanıcı oluştur
     const result = await db
       .prepare('INSERT INTO users (name, surname, username, mail, password_hash, phone, language, country, is_active, last_login_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?) RETURNING id')
-      .bind(name, surname, username, email, password, phone || null, language || null, country || null, now, now)
+      .bind(name, surname, username, email, password, phone || null, null, null, now, now)
       .first() as { id: number } | null
 
     const newUserId = result?.id

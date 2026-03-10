@@ -1,5 +1,7 @@
 import { defineNuxtConfig } from 'nuxt/config'
 
+const envSessionSecret = (globalThis as any)?.process?.env?.NUXT_SESSION_SECRET || ''
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -21,7 +23,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    sessionSecret: '',
+    sessionSecret: envSessionSecret,
     openWeatherApiKey: '',
     openaiApiKey: '',
   },
