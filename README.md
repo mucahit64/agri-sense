@@ -78,7 +78,7 @@ Backend -> Cloudflare Workers
 DB -> D1
 Web -> Quasar
 Mobile -> Flutter
-Auth -> JWT + Refresh
+Auth -> useSession(Nuxt 3)
 IoT -> API Key + HMAC
 CI/CD -> GitHub Actions
 Monitoring -> Cloudflare Analytics

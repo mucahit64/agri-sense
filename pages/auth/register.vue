@@ -112,12 +112,16 @@ async function handleRegister() {
                 </template>
               </q-input>
 
-              // Şifre kısmına gizle ve göster butonu ekle
               <q-input
                 v-model="password"
                 outlined
                 :type="showPassword ? 'text' : 'password'"
                 label="Şifre"
+                class="q-mb-md"
+                :rules="[
+                  (val: string) => !!val || 'Şifre gerekli',
+                  (val: string) => (val && val.length >= 6) || 'Şifre en az 6 karakter olmalı',
+                ]"
               >
                 <template #prepend>
                   <q-icon name="lock" />

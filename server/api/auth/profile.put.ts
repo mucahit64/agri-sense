@@ -1,3 +1,5 @@
+import type { User } from '~/types'
+
 export default defineEventHandler(async (event) => {
   const db = useDB(event)
   const session = await useAuthSession(event)
@@ -30,7 +32,7 @@ export default defineEventHandler(async (event) => {
     const existing = await db
       .prepare('SELECT password_hash FROM users WHERE id = ?')
       .bind(userId)
-      .first<{ password_hash: string }>()
+      .first() as { password_hash: string } | null
     if (!existing || String(existing.password_hash) !== String(body.current_password)) {
       throw createError({ statusCode: 400, message: 'Mevcut şifre hatalı' })
     }
@@ -44,7 +46,7 @@ export default defineEventHandler(async (event) => {
     const taken = await db
       .prepare('SELECT id FROM users WHERE username = ? AND id != ?')
       .bind(body.username.trim(), userId)
-      .first()
+      .first() as { id: string } | null
     if (taken) {
       throw createError({ statusCode: 409, message: 'Bu kullanıcı adı zaten kullanılıyor' })
     }
@@ -53,9 +55,9 @@ export default defineEventHandler(async (event) => {
   const now = new Date().toISOString()
 
   const current = await db
-    .prepare('SELECT name, surname, username, phone, language, country FROM users WHERE id = ?')
+    .prepare('SELECT * FROM users WHERE id = ?')
     .bind(userId)
-    .first<{ name: string | null, surname: string | null, username: string, phone: string | null, language: string | null, country: string | null }>()
+    .first() as User | null
 
   const newPasswordHash = body.new_password ? body.new_password : undefined
 

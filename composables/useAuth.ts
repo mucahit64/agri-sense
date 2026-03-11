@@ -53,7 +53,8 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
-      const response = await $fetch('/api/auth/me')
+      const headers = useRequestHeaders(['cookie'])
+      const response = await $fetch('/api/auth/me', { headers })
       user.value = response.user
       return true
     }

@@ -98,6 +98,17 @@ async function savePassword() {
     Notify.create({ type: 'negative', message: 'Yeni şifreler eşleşmiyor' })
     return
   }
+
+  if (passwordForm.value.new_password.length < 6) {
+    Notify.create({ type: 'negative', message: 'Yeni şifre en az 6 karakter olmalıdır' })
+    return
+  }
+
+  if (passwordForm.value.current_password === passwordForm.value.new_password) {
+    Notify.create({ type: 'warning', message: 'Yeni şifreniz mevcut şifrenizle aynı olamaz' })
+    return
+  }
+
   try {
     changingPassword.value = true
     await $fetch('/api/auth/profile', {
@@ -146,86 +157,64 @@ onMounted(() => {
                 <q-spinner size="42px" color="green-8" />
               </q-card-section>
 
-              <q-card-section v-else class="q-gutter-md">
+              <q-card-section v-else>
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-sm-6">
-                    <q-input
-                      v-model="form.name"
-                      outlined
-                      label="Ad"
-                    >
+                    <q-input v-model="form.name" outlined label="Ad">
                       <template #prepend>
                         <q-icon name="badge" />
                       </template>
                     </q-input>
                   </div>
+
                   <div class="col-12 col-sm-6">
-                    <q-input
-                      v-model="form.surname"
-                      outlined
-                      label="Soyad"
-                    >
+                    <q-input v-model="form.surname" outlined label="Soyad">
                       <template #prepend>
                         <q-icon name="badge" />
+                      </template>
+                    </q-input>
+                  </div>
+
+                  <div class="col-12">
+                    <q-input v-model="form.username" outlined label="Kullanıcı Adı">
+                      <template #prepend>
+                        <q-icon name="alternate_email" />
+                      </template>
+                    </q-input>
+                  </div>
+
+                  <div class="col-12">
+                    <q-input v-model="form.mail" outlined label="E-posta Adresi" readonly hint="E-posta adresi değiştirilemez">
+                      <template #prepend>
+                        <q-icon name="mail" />
+                      </template>
+                    </q-input>
+                  </div>
+
+                  <div class="col-12">
+                    <q-input v-model="form.phone" outlined label="Telefon" hint="Örn: +90 555 123 4567">
+                      <template #prepend>
+                        <q-icon name="phone" />
+                      </template>
+                    </q-input>
+                  </div>
+
+                  <div class="col-12">
+                    <q-input v-model="form.language" outlined label="Dil" hint="Örn: tr, en">
+                      <template #prepend>
+                        <q-icon name="language" />
+                      </template>
+                    </q-input>
+                  </div>
+
+                  <div class="col-12">
+                    <q-input v-model="form.country" outlined label="Ülke" hint="Örn: Türkiye">
+                      <template #prepend>
+                        <q-icon name="public" />
                       </template>
                     </q-input>
                   </div>
                 </div>
-
-                <q-input
-                  v-model="form.username"
-                  outlined
-                  label="Kullanıcı Adı"
-                >
-                  <template #prepend>
-                    <q-icon name="alternate_email" />
-                  </template>
-                </q-input>
-
-                <q-input
-                  v-model="form.mail"
-                  outlined
-                  label="E-posta Adresi"
-                  readonly
-                  hint="E-posta adresi değiştirilemez"
-                >
-                  <template #prepend>
-                    <q-icon name="mail" />
-                  </template>
-                </q-input>
-
-                <q-input
-                  v-model="form.phone"
-                  outlined
-                  label="Telefon"
-                  hint="Örn: +90 555 123 4567"
-                >
-                  <template #prepend>
-                    <q-icon name="phone" />
-                  </template>
-                </q-input>
-
-                <q-input
-                  v-model="form.language"
-                  outlined
-                  label="Dil"
-                  hint="Örn: tr, en"
-                >
-                  <template #prepend>
-                    <q-icon name="language" />
-                  </template>
-                </q-input>
-
-                <q-input
-                  v-model="form.country"
-                  outlined
-                  label="Ülke"
-                  hint="Örn: Türkiye"
-                >
-                  <template #prepend>
-                    <q-icon name="public" />
-                  </template>
-                </q-input>
               </q-card-section>
 
               <q-card-actions align="right" class="q-pa-md">
@@ -254,7 +243,7 @@ onMounted(() => {
                 </div>
               </q-card-section>
 
-              <q-card-section class="q-gutter-md">
+              <q-card-section class="column q-gutter-y-md">
                 <q-input
                   v-model="passwordForm.current_password"
                   outlined

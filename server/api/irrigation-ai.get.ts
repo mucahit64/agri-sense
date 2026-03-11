@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
     // Son toprak nemi okuması
     const latestSoil = await db
-      .prepare('SELECT readings.value, sensors.min_value, sensors.max_value FROM readings JOIN sensors ON readings.sensor_id = sensors.id WHERE sensors.type = ? ORDER BY readings.recorded_at DESC LIMIT 1')
+      .prepare('SELECT readings.value, sensors.min_value, sensors.max_value FROM readings JOIN sensors ON readings.sensor_id = sensors.id JOIN sensor_types ON sensors.type_id = sensor_types.id WHERE sensor_types.type_name = ? ORDER BY readings.recorded_at DESC LIMIT 1')
       .bind('soil_moisture')
       .first() as { value: number, min_value: number | null, max_value: number | null } | null
 

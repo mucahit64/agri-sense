@@ -1,3 +1,5 @@
+import type { User } from '~/types'
+
 export default defineEventHandler(async (event) => {
   const db = useDB(event)
   const session = await useAuthSession(event)
@@ -12,9 +14,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const user = await db
-    .prepare('SELECT name, surname, username, mail, phone, language, country FROM users WHERE id = ?')
+    .prepare('SELECT * FROM users WHERE id = ?')
     .bind(userId)
-    .first<{ name: string | null, surname: string | null, username: string, mail: string, phone: string | null, language: string | null, country: string | null }>()
+    .first() as User | null
 
   return {
     success: true,

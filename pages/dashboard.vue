@@ -1,5 +1,15 @@
 <script setup lang="ts">
-const { user, checkAuth } = useAuth()
+definePageMeta({
+  middleware: async (_to, _from) => {
+    const { checkAuth } = useAuth()
+    const isAuth = await checkAuth()
+    if (!isAuth) {
+      return navigateTo('/auth/login')
+    }
+  },
+})
+
+const { user } = useAuth()
 const router = useRouter()
 
 const stats = ref({
@@ -20,18 +30,6 @@ const payloadExample = `{
   "sensor_type": "soil_moisture",
   "value": 65.5
 }`
-
-onMounted(async () => {
-  const isAuthenticated = await checkAuth()
-  if (!isAuthenticated) {
-    router.push('/auth/login')
-  }
-  else {
-    loadStats()
-    loadWeather()
-    loadIrrigationAI()
-  }
-})
 
 async function loadStats() {
   try {
@@ -79,6 +77,12 @@ async function loadIrrigationAI() {
     irrigationAILoading.value = false
   }
 }
+
+onMounted(() => {
+  loadStats()
+  loadWeather()
+  loadIrrigationAI()
+})
 </script>
 
 <template>
