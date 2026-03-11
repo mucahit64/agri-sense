@@ -13,7 +13,11 @@ export default defineEventHandler(async (event) => {
 
   try {
     const { results: devices } = await db
-      .prepare('SELECT * FROM devices WHERE user_id = ? ORDER BY created_at DESC')
+      .prepare(`SELECT devices.*, fields.name as field_name
+        FROM devices
+        LEFT JOIN fields ON devices.field_id = fields.id
+        WHERE devices.user_id = ?
+        ORDER BY devices.created_at DESC`)
       .bind(userId)
       .all()
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Device } from '~/types'
+import type { Device, Field } from '~/types'
 import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
@@ -16,13 +16,25 @@ const { user, logout } = useAuth()
 const router = useRouter()
 
 const devices = ref<Device[]>([])
+const fields = ref<Field[]>([])
 const loading = ref(true)
 const showAddDialog = ref(false)
 const newDevice = ref({
   name: '',
   type: '',
   location: '',
+  field_id: null as number | null,
 })
+
+async function loadFields() {
+  try {
+    const response = await $fetch<{ success: boolean, fields: Field[] }>('/api/fields')
+    fields.value = response.fields
+  }
+  catch (error) {
+    console.error('Tarlalar yüklenemedi:', error)
+  }
+}
 
 async function loadDevices() {
   try {
@@ -45,7 +57,7 @@ async function addDevice() {
       body: newDevice.value,
     })
     showAddDialog.value = false
-    newDevice.value = { name: '', type: '', location: '' }
+    newDevice.value = { name: '', type: '', location: '', field_id: null }
     await loadDevices()
     Notify.create({
       type: 'positive',
@@ -91,6 +103,7 @@ async function handleLogout() {
 
 onMounted(() => {
   loadDevices()
+  loadFields()
 })
 </script>
 
@@ -252,6 +265,9 @@ onMounted(() => {
                   <q-badge v-if="device.location" color="blue">
                     {{ device.location }}
                   </q-badge>
+                  <q-badge v-if="device.field_name" color="green-8">
+                    {{ device.field_name }}
+                  </q-badge>
                 </div>
               </q-card-section>
 
@@ -305,6 +321,17 @@ onMounted(() => {
                 label="Konum"
                 class="q-mt-md"
                 hint="Örn: Sera 1, Bahçe"
+              />
+              <q-select
+                v-model="newDevice.field_id"
+                outlined
+                :options="[{ label: 'Seçilmemiş', value: null }, ...fields.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))]"
+                option-value="value"
+                option-label="label"
+                emit-value
+                map-options
+                label="Tarla"
+                class="q-mt-md"
               />
             </q-card-section>
 

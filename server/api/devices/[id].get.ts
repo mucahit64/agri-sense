@@ -15,7 +15,10 @@ export default defineEventHandler(async (event) => {
 
   try {
     const device = await db
-      .prepare('SELECT * FROM devices WHERE id = ? AND user_id = ?')
+      .prepare(`SELECT devices.*, fields.name as field_name
+        FROM devices
+        LEFT JOIN fields ON devices.field_id = fields.id
+        WHERE devices.id = ? AND devices.user_id = ?`)
       .bind(id, userId)
       .first()
 

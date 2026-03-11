@@ -27,10 +27,10 @@ function getSensorLabel(sensor: Sensor | null) {
 
 async function loadSensor() {
   try {
-    const response = await $fetch<{ success: boolean, sensors: Sensor[] }>(
-      `/api/sensors?sensor_id=${sensorId}`,
+    const response = await $fetch<{ success: boolean, sensor: Sensor }>(
+      `/api/sensors/${sensorId}`,
     )
-    sensor.value = response.sensors[0] || null
+    sensor.value = response.sensor
   }
   catch (error) {
     console.error('Sensör yüklenemedi:', error)
@@ -233,6 +233,18 @@ onMounted(() => {
 
             <!-- CONTENT -->
             <div class="row q-col-gutter-md q-mt-md">
+              <!-- CIHAZ -->
+              <div v-if="sensor.device_name" class="col-6 col-md-3">
+                <q-card flat bordered class="q-pa-sm text-center">
+                  <div class="text-caption text-grey-7">
+                    Bağlı Cihaz
+                  </div>
+                  <div class="text-body1 text-weight-medium">
+                    {{ sensor.device_name }}
+                  </div>
+                </q-card>
+              </div>
+
               <!-- TIP -->
               <div class="col-6 col-md-3">
                 <q-card flat bordered class="q-pa-sm text-center">

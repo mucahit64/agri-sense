@@ -37,6 +37,8 @@ export interface Device {
   location: string | null
   created_at: string | null
   updated_at: string | null
+  // Joined fields
+  field_name?: string | null
 }
 
 export interface Sensor {
@@ -55,6 +57,8 @@ export interface Sensor {
   type_icon?: string
   unit_name?: string
   unit_symbol?: string
+  // Joined device name
+  device_name?: string
 }
 
 export interface SensorType {
@@ -118,6 +122,14 @@ export interface DeviceCreate {
   field_id?: number
 }
 
+export interface DeviceUpdate {
+  name?: string
+  type?: string
+  status?: number
+  location?: string
+  field_id?: number | null
+}
+
 export interface FieldCreate {
   name: string
   lat?: number
@@ -133,6 +145,15 @@ export interface SensorCreate {
   unit_id: number
   min_value?: number
   max_value?: number
+}
+
+export interface SensorUpdate {
+  name?: string
+  device_id?: number
+  type_id?: number
+  unit_id?: number
+  min_value?: number | null
+  max_value?: number | null
 }
 
 export interface ReadingCreate {

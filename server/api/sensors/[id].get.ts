@@ -13,49 +13,42 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const query = getQuery(event)
-  const deviceId = query.device_id
-  const sensorId = query.sensor_id
+  const id = getRouterParam(event, 'id')
 
   try {
-    let sql = `SELECT sensors.*, 
+    const sensor = await db
+      .prepare(`SELECT sensors.*,
         sensor_types.name as type_name, sensor_types.label as type_label, sensor_types.icon as type_icon,
         units.name as unit_name, units.symbol as unit_symbol,
         devices.name as device_name
-      FROM sensors 
-      JOIN devices ON sensors.device_id = devices.id 
+      FROM sensors
+      JOIN devices ON sensors.device_id = devices.id
       LEFT JOIN sensor_types ON sensors.type_id = sensor_types.id
       LEFT JOIN units ON sensors.unit_id = units.id
-      WHERE devices.user_id = ?`
-    const params: any[] = [userId]
+      WHERE sensors.id = ? AND devices.user_id = ?`)
+      .bind(id, userId)
+      .first()
 
-    if (deviceId) {
-      sql += ' AND sensors.device_id = ?'
-      params.push(deviceId)
+    if (!sensor) {
+      throw createError({
+        statusCode: 404,
+        message: 'Sensör bulunamadı',
+      })
     }
-
-    if (sensorId) {
-      sql += ' AND sensors.id = ?'
-      params.push(sensorId)
-    }
-
-    sql += ' ORDER BY sensors.created_at DESC'
-
-    const { results: sensors } = await db
-      .prepare(sql)
-      .bind(...params)
-      .all()
 
     return {
       success: true,
-      sensors,
+      sensor,
     }
   }
   catch (error: any) {
-    console.error('Get sensors error:', error)
+    if (error.statusCode) {
+      throw error
+    }
+    console.error('Get sensor error:', error)
     throw createError({
       statusCode: 500,
-      message: 'Sensörler alınırken hata oluştu',
+      message: 'Sensör alınırken hata oluştu',
     })
   }
 })

@@ -183,6 +183,9 @@ onMounted(() => {
               <q-separator />
 
               <q-card-section>
+                <div v-if="sensor.device_name" class="text-caption text-grey-7">
+                  Cihaz: {{ sensor.device_name }}
+                </div>
                 <div class="text-caption text-grey-7">
                   Birim: {{ sensor.unit_symbol || "-" }}
                 </div>

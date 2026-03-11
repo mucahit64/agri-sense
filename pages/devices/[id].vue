@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Device, Sensor, SensorType } from '~/types'
+import type { Device, Field, Sensor, SensorType } from '~/types'
 import { Dialog, Notify } from 'quasar'
 
 definePageMeta({
@@ -19,8 +19,18 @@ const { user, logout } = useAuth()
 const deviceId = route.params.id as string
 const device = ref<Device | null>(null)
 const sensors = ref<Sensor[]>([])
+const fields = ref<Field[]>([])
 const loading = ref(true)
 const showAddDialog = ref(false)
+const editing = ref(false)
+
+const editForm = ref({
+  name: '',
+  type: '',
+  status: 1,
+  location: '',
+  field_id: null as number | null,
+})
 
 const newSensor = ref({
   name: '',
@@ -47,7 +57,6 @@ async function loadUnitsForType(typeId: number) {
   try {
     const response = await $fetch<{ success: boolean, units: any[] }>(`/api/units?sensor_type_id=${typeId}`)
     availableUnits.value = response.units
-    // Varsayılan birimi seç
     const defaultUnit = response.units.find((u: any) => u.is_default === 1)
     if (defaultUnit) {
       newSensor.value.unit_id = defaultUnit.id
@@ -77,10 +86,27 @@ async function loadDevice() {
       `/api/devices/${deviceId}`,
     )
     device.value = response.device
+    editForm.value = {
+      name: response.device.name || '',
+      type: response.device.type || '',
+      status: response.device.status,
+      location: response.device.location || '',
+      field_id: response.device.field_id,
+    }
   }
   catch (error) {
     console.error('Cihaz yüklenemedi:', error)
     router.push('/devices')
+  }
+}
+
+async function loadFields() {
+  try {
+    const response = await $fetch<{ success: boolean, fields: Field[] }>('/api/fields')
+    fields.value = response.fields
+  }
+  catch (error) {
+    console.error('Tarlalar yüklenemedi:', error)
   }
 }
 
@@ -96,6 +122,54 @@ async function loadSensors() {
   finally {
     loading.value = false
   }
+}
+
+async function saveDevice() {
+  try {
+    await $fetch(`/api/devices/${deviceId}`, {
+      method: 'PUT',
+      body: editForm.value,
+    })
+    editing.value = false
+    await loadDevice()
+    Notify.create({
+      type: 'positive',
+      message: 'Cihaz güncellendi',
+    })
+  }
+  catch (error: any) {
+    Notify.create({
+      type: 'negative',
+      message: error.data?.message || 'Cihaz güncellenemedi',
+    })
+  }
+}
+
+async function removeFromField() {
+  Dialog.create({
+    title: 'Onay',
+    message: 'Cihazı tarladan kaldırmak istediğinizden emin misiniz?',
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await $fetch(`/api/devices/${deviceId}`, {
+        method: 'PUT',
+        body: { field_id: null },
+      })
+      await loadDevice()
+      Notify.create({
+        type: 'positive',
+        message: 'Cihaz tarladan kaldırıldı',
+      })
+    }
+    catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.data?.message || 'İşlem başarısız',
+      })
+    }
+  })
 }
 
 async function addSensor() {
@@ -170,6 +244,7 @@ onMounted(() => {
   loadDevice()
   loadSensors()
   loadSensorTypes()
+  loadFields()
 })
 </script>
 
@@ -266,23 +341,111 @@ onMounted(() => {
       <q-page class="q-pa-md">
         <q-card class="q-mb-md">
           <q-card-section>
-            <div class="text-h6">
-              Cihaz Bilgileri
+            <div class="row items-center">
+              <div class="text-h6">
+                Cihaz Bilgileri
+              </div>
+              <q-space />
+              <q-btn
+                v-if="!editing"
+                flat
+                color="primary"
+                icon="edit"
+                label="Düzenle"
+                @click="editing = true"
+              />
             </div>
-            <div class="text-caption text-grey-7">
-              Tip: {{ device?.type || "-" }} | Konum:
-              {{ device?.location || "-" }}
+
+            <!-- Görüntüleme Modu -->
+            <div v-if="!editing">
+              <div class="text-caption text-grey-7 q-mt-sm">
+                Tip: {{ device?.type || "-" }} | Konum:
+                {{ device?.location || "-" }}
+              </div>
+              <div class="text-caption text-grey-7">
+                Tarla:
+                <template v-if="device?.field_name">
+                  <q-badge color="green-8" class="q-ml-xs">
+                    {{ device.field_name }}
+                  </q-badge>
+                  <q-btn
+                    flat
+                    dense
+                    size="sm"
+                    color="negative"
+                    icon="link_off"
+                    class="q-ml-xs"
+                    @click="removeFromField"
+                  >
+                    <q-tooltip>Tarladan Kaldır</q-tooltip>
+                  </q-btn>
+                </template>
+                <template v-else>
+                  Atanmamış
+                </template>
+              </div>
+              <div class="q-mt-sm">
+                <q-badge
+                  :color="device?.status === 1 ? 'positive' : 'grey'"
+                >
+                  {{
+                    device?.status === 1
+                      ? "Aktif"
+                      : "Pasif"
+                  }}
+                </q-badge>
+              </div>
             </div>
-            <div class="q-mt-sm">
-              <q-badge
-                :color="device?.status === 1 ? 'positive' : 'grey'"
-              >
-                {{
-                  device?.status === 1
-                    ? "Aktif"
-                    : "Pasif"
-                }}
-              </q-badge>
+
+            <!-- Düzenleme Modu -->
+            <div v-else class="q-mt-md">
+              <q-input
+                v-model="editForm.name"
+                outlined
+                label="Cihaz Adı"
+                class="q-mb-md"
+              />
+              <q-input
+                v-model="editForm.type"
+                outlined
+                label="Cihaz Tipi"
+                class="q-mb-md"
+                hint="Örn: ESP32, Arduino"
+              />
+              <q-input
+                v-model="editForm.location"
+                outlined
+                label="Konum"
+                class="q-mb-md"
+                hint="Örn: Sera 1, Bahçe"
+              />
+              <q-select
+                v-model="editForm.field_id"
+                outlined
+                :options="[{ label: 'Atanmamış', value: null }, ...fields.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))]"
+                option-value="value"
+                option-label="label"
+                emit-value
+                map-options
+                label="Tarla"
+                class="q-mb-md"
+              />
+              <q-toggle
+                v-model="editForm.status"
+                :true-value="1"
+                :false-value="0"
+                label="Aktif"
+                class="q-mb-md"
+              />
+              <div class="row q-gutter-sm">
+                <q-btn
+                  unelevated
+                  color="green-8"
+                  label="Kaydet"
+                  @click="saveDevice"
+                />
+                <q-btn flat label="İptal" @click="editing = false" />
+              </div>
             </div>
           </q-card-section>
         </q-card>
