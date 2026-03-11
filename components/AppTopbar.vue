@@ -1,11 +1,14 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
-  title?: string
-  backTo?: string
-}>(), {
-  title: undefined,
-  backTo: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    backTo?: string
+  }>(),
+  {
+    title: undefined,
+    backTo: undefined,
+  },
+)
 
 const { user, logout } = useAuth()
 const router = useRouter()
@@ -32,13 +35,19 @@ async function handleLogout() {
 
       <!-- LOGO + TITLE -->
       <q-toolbar-title class="row items-center no-wrap">
-        <img
-          src="/agri-sense-white.png"
-          alt="AgriSense Logo"
-          :height="$q.screen.lt.md ? 28 : 32"
-          class="q-mr-sm"
+        <div
+          class="row items-center cursor-pointer"
+          @click="router.push('/dashboard')"
         >
-        <span v-if="title" class="gt-sm">{{ title }}</span>
+          <img
+            src="/agri-sense-white.png"
+            alt="AgriSense Logo"
+            :height="$q.screen.lt.md ? 28 : 32"
+            class="q-mr-sm"
+          >
+          <span class="gt-sm">{{ `AgriSense` }}</span>
+        </div>
+        <span v-if="title" class="gt-sm q-ml-sm">- {{ title }}</span>
       </q-toolbar-title>
 
       <!-- DESKTOP NAV -->
@@ -48,7 +57,11 @@ async function handleLogout() {
         <q-btn flat label="Cihazlar" to="/devices" />
 
         <q-btn flat round dense icon="account_circle" class="q-ml-sm">
-          <q-menu anchor="bottom right" self="top right" style="min-width: 260px">
+          <q-menu
+            anchor="bottom right"
+            self="top right"
+            style="min-width: 260px"
+          >
             <q-list>
               <q-item v-close-popup clickable to="/profile">
                 <q-item-section avatar>

@@ -19,27 +19,7 @@ const fieldId = route.params.id as string
 const field = ref<Field | null>(null)
 const devices = ref<Device[]>([])
 const loading = ref(true)
-const editing = ref(false)
-
-const editForm = ref({
-  name: '',
-  lat: undefined as number | undefined,
-  lon: undefined as number | undefined,
-  area_m2: undefined as number | undefined,
-  soil_type: '',
-  is_active: 1,
-})
-
-const soilTypes = [
-  { value: 'killi', label: 'Killi' },
-  { value: 'kumlu', label: 'Kumlu' },
-  { value: 'tınlı', label: 'Tınlı' },
-  { value: 'killi-tınlı', label: 'Killi Tınlı' },
-  { value: 'kumlu-tınlı', label: 'Kumlu Tınlı' },
-  { value: 'humuslu', label: 'Humuslu' },
-  { value: 'kireçli', label: 'Kireçli' },
-  { value: 'diğer', label: 'Diğer' },
-]
+const showEditDialog = ref(false)
 
 async function loadField() {
   try {
@@ -47,14 +27,6 @@ async function loadField() {
       `/api/fields/${fieldId}`,
     )
     field.value = response.field
-    editForm.value = {
-      name: response.field.name || '',
-      lat: response.field.lat || undefined,
-      lon: response.field.lon || undefined,
-      area_m2: response.field.area_m2 || undefined,
-      soil_type: response.field.soil_type || '',
-      is_active: response.field.is_active,
-    }
   }
   catch (error) {
     console.error('Tarla yüklenemedi:', error)
@@ -68,7 +40,6 @@ async function loadDevices() {
     const response = await $fetch<{ success: boolean, devices: Device[] }>(
       '/api/devices',
     )
-    // Tarlaya bağlı cihazları filtrele
     devices.value = response.devices.filter(
       d => d.field_id === Number(fieldId),
     )
@@ -78,27 +49,6 @@ async function loadDevices() {
   }
   finally {
     loading.value = false
-  }
-}
-
-async function saveField() {
-  try {
-    await $fetch(`/api/fields/${fieldId}`, {
-      method: 'PUT',
-      body: editForm.value,
-    })
-    editing.value = false
-    await loadField()
-    Notify.create({
-      type: 'positive',
-      message: 'Tarla güncellendi',
-    })
-  }
-  catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Tarla güncellenemedi',
-    })
   }
 }
 
@@ -134,7 +84,7 @@ onMounted(() => {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <AppTopbar title="Tarla Detayı" back-to="/fields" />
+    <AppTopbar :title="field?.name || 'Tarla Detayı'" back-to="/fields" />
 
     <q-page-container>
       <q-page class="q-pa-md">
@@ -147,12 +97,11 @@ onMounted(() => {
               </div>
               <q-space />
               <q-btn
-                v-if="!editing"
                 flat
                 color="primary"
                 icon="edit"
                 label="Düzenle"
-                @click="editing = true"
+                @click="showEditDialog = true"
               />
               <q-btn
                 flat
@@ -163,83 +112,20 @@ onMounted(() => {
               />
             </div>
 
-            <!-- Görüntüleme Modu -->
-            <div v-if="!editing">
-              <div class="text-caption text-grey-7 q-mt-sm">
-                Toprak Tipi: {{ field?.soil_type || "-" }} | Alan:
-                {{ field?.area_m2 ? `${field.area_m2} m²` : "-" }}
-              </div>
-              <div
-                v-if="field?.lat && field?.lon"
-                class="text-caption text-grey-7"
-              >
-                Konum: {{ field.lat.toFixed(4) }}, {{ field.lon.toFixed(4) }}
-              </div>
-              <div class="q-mt-sm">
-                <q-badge :color="field?.is_active === 1 ? 'positive' : 'grey'">
-                  {{ field?.is_active === 1 ? "Aktif" : "Pasif" }}
-                </q-badge>
-              </div>
+            <div class="text-caption text-grey-7 q-mt-sm">
+              Toprak Tipi: {{ field?.soil_type || '-' }} | Alan:
+              {{ field?.area_m2 ? `${field.area_m2} m²` : '-' }}
             </div>
-
-            <!-- Düzenleme Modu -->
-            <div v-else class="q-mt-md">
-              <q-input
-                v-model="editForm.name"
-                outlined
-                label="Tarla Adı"
-                class="q-mb-md"
-              />
-              <q-select
-                v-model="editForm.soil_type"
-                outlined
-                :options="soilTypes"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                label="Toprak Tipi"
-                class="q-mb-md"
-              />
-              <q-input
-                v-model.number="editForm.area_m2"
-                outlined
-                type="number"
-                label="Alan (m²)"
-                class="q-mb-md"
-              />
-              <q-input
-                v-model.number="editForm.lat"
-                outlined
-                type="number"
-                label="Enlem (Lat)"
-                class="q-mb-md"
-                step="0.0001"
-              />
-              <q-input
-                v-model.number="editForm.lon"
-                outlined
-                type="number"
-                label="Boylam (Lon)"
-                class="q-mb-md"
-                step="0.0001"
-              />
-              <q-toggle
-                v-model="editForm.is_active"
-                :true-value="1"
-                :false-value="0"
-                label="Aktif"
-                class="q-mb-md"
-              />
-              <div class="row q-gutter-sm">
-                <q-btn
-                  unelevated
-                  color="green-8"
-                  label="Kaydet"
-                  @click="saveField"
-                />
-                <q-btn flat label="İptal" @click="editing = false" />
-              </div>
+            <div
+              v-if="field?.lat && field?.lon"
+              class="text-caption text-grey-7"
+            >
+              Konum: {{ field.lat.toFixed(4) }}, {{ field.lon.toFixed(4) }}
+            </div>
+            <div class="q-mt-sm">
+              <q-badge :color="field?.is_active === 1 ? 'positive' : 'grey'">
+                {{ field?.is_active === 1 ? 'Aktif' : 'Pasif' }}
+              </q-badge>
             </div>
           </q-card-section>
         </q-card>
@@ -281,10 +167,10 @@ onMounted(() => {
                   <q-icon name="memory" size="32px" color="green-8" />
                   <div class="q-ml-md">
                     <div class="text-h6">
-                      {{ device.name || "İsimsiz Cihaz" }}
+                      {{ device.name || 'İsimsiz Cihaz' }}
                     </div>
                     <div class="text-caption text-grey-7">
-                      {{ device.type || "Tip belirtilmemiş" }}
+                      {{ device.type || 'Tip belirtilmemiş' }}
                     </div>
                   </div>
                 </div>
@@ -303,6 +189,14 @@ onMounted(() => {
             </q-card>
           </div>
         </div>
+
+        <!-- Edit Field Dialog -->
+        <EditDialog
+          v-model="showEditDialog"
+          type="field"
+          :item="field"
+          @saved="loadField"
+        />
       </q-page>
     </q-page-container>
   </q-layout>

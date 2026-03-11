@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Field } from '~/types'
 import { Dialog, Notify } from 'quasar'
+import { soilTypes } from '~/utils/constants'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -15,6 +16,8 @@ definePageMeta({
 const fields = ref<Field[]>([])
 const loading = ref(true)
 const showAddDialog = ref(false)
+const showEditDialog = ref(false)
+const editingField = ref<Field | null>(null)
 const newField = ref({
   name: '',
   lat: undefined as number | undefined,
@@ -22,17 +25,6 @@ const newField = ref({
   area_m2: undefined as number | undefined,
   soil_type: '',
 })
-
-const soilTypes = [
-  { value: 'killi', label: 'Killi' },
-  { value: 'kumlu', label: 'Kumlu' },
-  { value: 'tınlı', label: 'Tınlı' },
-  { value: 'killi-tınlı', label: 'Killi Tınlı' },
-  { value: 'kumlu-tınlı', label: 'Kumlu Tınlı' },
-  { value: 'humuslu', label: 'Humuslu' },
-  { value: 'kireçli', label: 'Kireçli' },
-  { value: 'diğer', label: 'Diğer' },
-]
 
 async function loadFields() {
   try {
@@ -102,6 +94,11 @@ async function deleteField(id: number) {
   })
 }
 
+function openEditDialog(field: Field) {
+  editingField.value = field
+  showEditDialog.value = true
+}
+
 onMounted(() => {
   loadFields()
 })
@@ -109,7 +106,7 @@ onMounted(() => {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <AppTopbar title="AgriSense - Tarlalarım" />
+    <AppTopbar />
 
     <q-page-container>
       <q-page class="q-pa-md">
@@ -193,6 +190,12 @@ onMounted(() => {
                 <q-space />
                 <q-btn
                   flat
+                  color="warning"
+                  icon="edit"
+                  @click="openEditDialog(field)"
+                />
+                <q-btn
+                  flat
                   color="negative"
                   icon="delete"
                   @click="deleteField(field.id)"
@@ -269,6 +272,14 @@ onMounted(() => {
             </q-card-actions>
           </q-card>
         </q-dialog>
+
+        <!-- Edit Field Dialog -->
+        <EditDialog
+          v-model="showEditDialog"
+          type="field"
+          :item="editingField"
+          @saved="loadFields"
+        />
       </q-page>
     </q-page-container>
   </q-layout>

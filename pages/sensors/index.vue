@@ -45,7 +45,7 @@ onMounted(() => {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <AppTopbar title="AgriSense - Tüm Sensörler" />
+    <AppTopbar />
 
     <q-page-container>
       <q-page class="q-pa-md">

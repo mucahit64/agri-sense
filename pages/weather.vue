@@ -6,7 +6,9 @@ const router = useRouter()
 
 const weather = ref<WeatherForecastResponse | null>(null)
 const weatherLoading = ref(false)
-const currentForecast = computed<WeatherForecastItem | null>(() => weather.value?.list?.[0] ?? null)
+const currentForecast = computed<WeatherForecastItem | null>(
+  () => weather.value?.list?.[0] ?? null,
+)
 
 onMounted(async () => {
   const isAuthenticated = await checkAuth()
@@ -22,9 +24,10 @@ async function loadWeather() {
   weatherLoading.value = true
   try {
     const response = await $fetch('/api/weather')
-    weather.value = typeof response.weather === 'string'
-      ? JSON.parse(response.weather)
-      : response.weather
+    weather.value
+      = typeof response.weather === 'string'
+        ? JSON.parse(response.weather)
+        : response.weather
   }
   catch (error) {
     console.error('Hava durumu yüklenemedi:', error)
@@ -46,7 +49,10 @@ function formatDate(timestamp: number) {
 
 function formatTime(timestamp: number) {
   const date = new Date(timestamp * 1000)
-  return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+  return date.toLocaleTimeString('tr-TR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 function formatDateTime(timestamp: number) {
@@ -80,7 +86,7 @@ async function refreshWeather() {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <AppTopbar title="AgriSense – Hava Durumu" />
+    <AppTopbar />
 
     <q-page-container>
       <q-page class="q-pa-md">
@@ -114,7 +120,8 @@ async function refreshWeather() {
             <q-card-section>
               <div class="text-h6 q-mb-md">
                 <q-icon name="location_on" class="q-mr-sm" />
-                {{ weather.city?.name || 'Konum' }}, {{ weather.city?.country || '' }}
+                {{ weather.city?.name || "Konum" }},
+                {{ weather.city?.country || "" }}
               </div>
 
               <div class="row items-center">
@@ -130,7 +137,8 @@ async function refreshWeather() {
                     {{ getWeatherDescription(currentForecast) }}
                   </div>
                   <div class="text-caption text-grey-6 q-mt-sm">
-                    Hissedilen: {{ Math.round(currentForecast.main.feels_like) }}°C
+                    Hissedilen:
+                    {{ Math.round(currentForecast.main.feels_like) }}°C
                   </div>
                 </div>
 
@@ -144,7 +152,8 @@ async function refreshWeather() {
                             Min / Max
                           </div>
                           <div class="text-h6 text-weight-bold">
-                            {{ Math.round(currentForecast.main.temp_min) }}° / {{ Math.round(currentForecast.main.temp_max) }}°
+                            {{ Math.round(currentForecast.main.temp_min) }}° /
+                            {{ Math.round(currentForecast.main.temp_max) }}°
                           </div>
                         </q-card-section>
                       </q-card>
@@ -171,7 +180,10 @@ async function refreshWeather() {
                           </div>
                           <div class="row justify-center items-center">
                             <div class="text-h6 text-weight-bold">
-                              {{ Math.round(currentForecast.wind.speed * 3.6) }} km/h
+                              {{
+                                Math.round(currentForecast.wind.speed * 3.6)
+                              }}
+                              km/h
                             </div>
                             <div class="text-h6 text-weight-bold q-ml-sm">
                               {{ getWindDirection(currentForecast.wind.deg) }}
@@ -214,7 +226,10 @@ async function refreshWeather() {
                             Görüş Mesafesi
                           </div>
                           <div class="text-h6 text-weight-bold">
-                            {{ Math.round(currentForecast.visibility / 1000) }} km
+                            {{
+                              Math.round(currentForecast.visibility / 1000)
+                            }}
+                            km
                           </div>
                         </q-card-section>
                       </q-card>
@@ -268,7 +283,10 @@ async function refreshWeather() {
                           {{ Math.round(item.wind.speed * 3.6) }}km/h
                         </div>
                       </div>
-                      <div v-if="item.pop > 0" class="text-caption text-blue q-mt-xs">
+                      <div
+                        v-if="item.pop > 0"
+                        class="text-caption text-blue q-mt-xs"
+                      >
                         <q-icon name="grain" size="12px" />
                         Yağış: %{{ Math.round(item.pop * 100) }}
                       </div>
@@ -290,15 +308,61 @@ async function refreshWeather() {
               <q-table
                 :rows="weather.list"
                 :columns="[
-                  { name: 'time', label: 'Zaman', field: (row: any) => formatDateTime(row.dt), align: 'left' },
-                  { name: 'temp', label: 'Sıcaklık', field: (row: any) => `${Math.round(row.main.temp)}°C`, align: 'center' },
-                  { name: 'feels', label: 'Hissedilen', field: (row: any) => `${Math.round(row.main.feels_like)}°C`, align: 'center' },
-                  { name: 'humidity', label: 'Nem', field: (row: any) => `%${row.main.humidity}`, align: 'center' },
-                  { name: 'wind', label: 'Rüzgar', field: (row: any) => `${Math.round(row.wind.speed * 3.6)} km/h`, align: 'center' },
-                  { name: 'pressure', label: 'Basınç', field: (row: any) => `${row.main.pressure} hPa`, align: 'center' },
-                  { name: 'clouds', label: 'Bulut', field: (row: any) => `%${row.clouds.all}`, align: 'center' },
-                  { name: 'rain', label: 'Yağış Olasılığı', field: (row: any) => `%${Math.round(row.pop * 100)}`, align: 'center' },
-                  { name: 'desc', label: 'Durum', field: (row: any) => row.weather?.[0]?.description || '-', align: 'left' },
+                  {
+                    name: 'time',
+                    label: 'Zaman',
+                    field: (row: any) => formatDateTime(row.dt),
+                    align: 'left',
+                  },
+                  {
+                    name: 'temp',
+                    label: 'Sıcaklık',
+                    field: (row: any) => `${Math.round(row.main.temp)}°C`,
+                    align: 'center',
+                  },
+                  {
+                    name: 'feels',
+                    label: 'Hissedilen',
+                    field: (row: any) => `${Math.round(row.main.feels_like)}°C`,
+                    align: 'center',
+                  },
+                  {
+                    name: 'humidity',
+                    label: 'Nem',
+                    field: (row: any) => `%${row.main.humidity}`,
+                    align: 'center',
+                  },
+                  {
+                    name: 'wind',
+                    label: 'Rüzgar',
+                    field: (row: any) =>
+                      `${Math.round(row.wind.speed * 3.6)} km/h`,
+                    align: 'center',
+                  },
+                  {
+                    name: 'pressure',
+                    label: 'Basınç',
+                    field: (row: any) => `${row.main.pressure} hPa`,
+                    align: 'center',
+                  },
+                  {
+                    name: 'clouds',
+                    label: 'Bulut',
+                    field: (row: any) => `%${row.clouds.all}`,
+                    align: 'center',
+                  },
+                  {
+                    name: 'rain',
+                    label: 'Yağış Olasılığı',
+                    field: (row: any) => `%${Math.round(row.pop * 100)}`,
+                    align: 'center',
+                  },
+                  {
+                    name: 'desc',
+                    label: 'Durum',
+                    field: (row: any) => row.weather?.[0]?.description || '-',
+                    align: 'left',
+                  },
                 ]"
                 row-key="dt"
                 flat
@@ -338,7 +402,8 @@ async function refreshWeather() {
                     Koordinatlar
                   </div>
                   <div class="text-weight-bold">
-                    {{ weather.city.coord?.lat?.toFixed(4) }}, {{ weather.city.coord?.lon?.toFixed(4) }}
+                    {{ weather.city.coord?.lat?.toFixed(4) }},
+                    {{ weather.city.coord?.lon?.toFixed(4) }}
                   </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -346,7 +411,9 @@ async function refreshWeather() {
                     Nüfus
                   </div>
                   <div class="text-weight-bold">
-                    {{ weather.city.population?.toLocaleString('tr-TR') || '-' }}
+                    {{
+                      weather.city.population?.toLocaleString("tr-TR") || "-"
+                    }}
                   </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -370,7 +437,8 @@ async function refreshWeather() {
                     Zaman Dilimi
                   </div>
                   <div class="text-weight-bold">
-                    UTC{{ weather.city.timezone >= 0 ? '+' : '' }}{{ weather.city.timezone / 3600 }}
+                    UTC{{ weather.city.timezone >= 0 ? "+" : ""
+                    }}{{ weather.city.timezone / 3600 }}
                   </div>
                 </div>
               </div>

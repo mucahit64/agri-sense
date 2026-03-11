@@ -16,6 +16,8 @@ const devices = ref<Device[]>([])
 const fields = ref<Field[]>([])
 const loading = ref(true)
 const showAddDialog = ref(false)
+const showEditDialog = ref(false)
+const editingDevice = ref<Device | null>(null)
 const newDevice = ref({
   name: '',
   type: '',
@@ -97,11 +99,16 @@ onMounted(() => {
   loadDevices()
   loadFields()
 })
+
+function openEditDialog(device: Device) {
+  editingDevice.value = device
+  showEditDialog.value = true
+}
 </script>
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <AppTopbar title="AgriSense - Cihazlarım" />
+    <AppTopbar />
 
     <q-page-container>
       <q-page class="q-pa-md">
@@ -195,6 +202,12 @@ onMounted(() => {
                 <q-space />
                 <q-btn
                   flat
+                  color="warning"
+                  icon="edit"
+                  @click="openEditDialog(device)"
+                />
+                <q-btn
+                  flat
                   color="negative"
                   icon="delete"
                   @click="deleteDevice(device.id)"
@@ -203,6 +216,15 @@ onMounted(() => {
             </q-card>
           </div>
         </div>
+
+        <!-- Edit Device Dialog -->
+        <EditDialog
+          v-model="showEditDialog"
+          type="device"
+          :item="editingDevice"
+          :fields="[{ label: 'Seçilmemiş', value: null }, ...fields.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))]"
+          @saved="loadDevices"
+        />
 
         <!-- Add Device Dialog -->
         <q-dialog v-model="showAddDialog">

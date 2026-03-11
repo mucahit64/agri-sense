@@ -62,7 +62,10 @@ async function loadProfile() {
     }
   }
   catch (error: any) {
-    Notify.create({ type: 'negative', message: error.data?.message || 'Profil bilgileri alınamadı' })
+    Notify.create({
+      type: 'negative',
+      message: error.data?.message || 'Profil bilgileri alınamadı',
+    })
   }
   finally {
     loading.value = false
@@ -86,7 +89,10 @@ async function saveProfile() {
     Notify.create({ type: 'positive', message: 'Profil güncellendi' })
   }
   catch (error: any) {
-    Notify.create({ type: 'negative', message: error.data?.message || 'Profil güncellenemedi' })
+    Notify.create({
+      type: 'negative',
+      message: error.data?.message || 'Profil güncellenemedi',
+    })
   }
   finally {
     saving.value = false
@@ -100,12 +106,18 @@ async function savePassword() {
   }
 
   if (passwordForm.value.new_password.length < 6) {
-    Notify.create({ type: 'negative', message: 'Yeni şifre en az 6 karakter olmalıdır' })
+    Notify.create({
+      type: 'negative',
+      message: 'Yeni şifre en az 6 karakter olmalıdır',
+    })
     return
   }
 
   if (passwordForm.value.current_password === passwordForm.value.new_password) {
-    Notify.create({ type: 'warning', message: 'Yeni şifreniz mevcut şifrenizle aynı olamaz' })
+    Notify.create({
+      type: 'warning',
+      message: 'Yeni şifreniz mevcut şifrenizle aynı olamaz',
+    })
     return
   }
 
@@ -118,11 +130,18 @@ async function savePassword() {
         new_password: passwordForm.value.new_password,
       },
     })
-    passwordForm.value = { current_password: '', new_password: '', confirm_password: '' }
+    passwordForm.value = {
+      current_password: '',
+      new_password: '',
+      confirm_password: '',
+    }
     Notify.create({ type: 'positive', message: 'Şifre güncellendi' })
   }
   catch (error: any) {
-    Notify.create({ type: 'negative', message: error.data?.message || 'Şifre güncellenemedi' })
+    Notify.create({
+      type: 'negative',
+      message: error.data?.message || 'Şifre güncellenemedi',
+    })
   }
   finally {
     changingPassword.value = false
@@ -136,7 +155,7 @@ onMounted(() => {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <AppTopbar title="AgriSense - Profil" />
+    <AppTopbar />
 
     <q-page-container>
       <q-page class="q-pa-md">
@@ -146,7 +165,12 @@ onMounted(() => {
             <q-card>
               <q-card-section class="bg-green-1">
                 <div class="row items-center">
-                  <q-icon name="person" size="24px" color="green-8" class="q-mr-sm" />
+                  <q-icon
+                    name="person"
+                    size="24px"
+                    color="green-8"
+                    class="q-mr-sm"
+                  />
                   <div class="text-h6 text-weight-bold">
                     Profil Bilgileri
                   </div>
@@ -176,7 +200,11 @@ onMounted(() => {
                   </div>
 
                   <div class="col-12">
-                    <q-input v-model="form.username" outlined label="Kullanıcı Adı">
+                    <q-input
+                      v-model="form.username"
+                      outlined
+                      label="Kullanıcı Adı"
+                    >
                       <template #prepend>
                         <q-icon name="alternate_email" />
                       </template>
@@ -184,7 +212,13 @@ onMounted(() => {
                   </div>
 
                   <div class="col-12">
-                    <q-input v-model="form.mail" outlined label="E-posta Adresi" readonly hint="E-posta adresi değiştirilemez">
+                    <q-input
+                      v-model="form.mail"
+                      outlined
+                      label="E-posta Adresi"
+                      readonly
+                      hint="E-posta adresi değiştirilemez"
+                    >
                       <template #prepend>
                         <q-icon name="mail" />
                       </template>
@@ -192,7 +226,12 @@ onMounted(() => {
                   </div>
 
                   <div class="col-12">
-                    <q-input v-model="form.phone" outlined label="Telefon" hint="Örn: +90 555 123 4567">
+                    <q-input
+                      v-model="form.phone"
+                      outlined
+                      label="Telefon"
+                      hint="Örn: +90 555 123 4567"
+                    >
                       <template #prepend>
                         <q-icon name="phone" />
                       </template>
@@ -200,7 +239,12 @@ onMounted(() => {
                   </div>
 
                   <div class="col-12">
-                    <q-input v-model="form.language" outlined label="Dil" hint="Örn: tr, en">
+                    <q-input
+                      v-model="form.language"
+                      outlined
+                      label="Dil"
+                      hint="Örn: tr, en"
+                    >
                       <template #prepend>
                         <q-icon name="language" />
                       </template>
@@ -208,7 +252,12 @@ onMounted(() => {
                   </div>
 
                   <div class="col-12">
-                    <q-input v-model="form.country" outlined label="Ülke" hint="Örn: Türkiye">
+                    <q-input
+                      v-model="form.country"
+                      outlined
+                      label="Ülke"
+                      hint="Örn: Türkiye"
+                    >
                       <template #prepend>
                         <q-icon name="public" />
                       </template>
@@ -236,7 +285,12 @@ onMounted(() => {
             <q-card>
               <q-card-section class="bg-orange-1">
                 <div class="row items-center">
-                  <q-icon name="lock" size="24px" color="orange-8" class="q-mr-sm" />
+                  <q-icon
+                    name="lock"
+                    size="24px"
+                    color="orange-8"
+                    class="q-mr-sm"
+                  />
                   <div class="text-h6 text-weight-bold">
                     Şifre Değiştir
                   </div>
@@ -255,7 +309,9 @@ onMounted(() => {
                   </template>
                   <template #append>
                     <q-icon
-                      :name="showCurrentPassword ? 'visibility_off' : 'visibility'"
+                      :name="
+                        showCurrentPassword ? 'visibility_off' : 'visibility'
+                      "
                       class="cursor-pointer"
                       @click="showCurrentPassword = !showCurrentPassword"
                     />
@@ -286,7 +342,10 @@ onMounted(() => {
                   outlined
                   label="Yeni Şifre (Tekrar)"
                   :type="showConfirmPassword ? 'text' : 'password'"
-                  :error="passwordForm.confirm_password.length > 0 && passwordForm.new_password !== passwordForm.confirm_password"
+                  :error="
+                    passwordForm.confirm_password.length > 0
+                      && passwordForm.new_password !== passwordForm.confirm_password
+                  "
                   error-message="Şifreler eşleşmiyor"
                 >
                   <template #prepend>
@@ -294,7 +353,9 @@ onMounted(() => {
                   </template>
                   <template #append>
                     <q-icon
-                      :name="showConfirmPassword ? 'visibility_off' : 'visibility'"
+                      :name="
+                        showConfirmPassword ? 'visibility_off' : 'visibility'
+                      "
                       class="cursor-pointer"
                       @click="showConfirmPassword = !showConfirmPassword"
                     />
@@ -308,7 +369,11 @@ onMounted(() => {
                   color="orange-8"
                   label="Şifreyi Güncelle"
                   :loading="changingPassword"
-                  :disable="!passwordForm.current_password || !passwordForm.new_password || !passwordForm.confirm_password"
+                  :disable="
+                    !passwordForm.current_password
+                      || !passwordForm.new_password
+                      || !passwordForm.confirm_password
+                  "
                   @click="savePassword"
                 />
               </q-card-actions>

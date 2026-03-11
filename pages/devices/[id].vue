@@ -21,15 +21,7 @@ const sensors = ref<Sensor[]>([])
 const fields = ref<Field[]>([])
 const loading = ref(true)
 const showAddDialog = ref(false)
-const editing = ref(false)
-
-const editForm = ref({
-  name: '',
-  type: '',
-  status: 1,
-  location: '',
-  field_id: null as number | null,
-})
+const showEditDialog = ref(false)
 
 const newSensor = ref({
   name: '',
@@ -85,13 +77,6 @@ async function loadDevice() {
       `/api/devices/${deviceId}`,
     )
     device.value = response.device
-    editForm.value = {
-      name: response.device.name || '',
-      type: response.device.type || '',
-      status: response.device.status,
-      location: response.device.location || '',
-      field_id: response.device.field_id,
-    }
   }
   catch (error) {
     console.error('Cihaz yüklenemedi:', error)
@@ -120,27 +105,6 @@ async function loadSensors() {
   }
   finally {
     loading.value = false
-  }
-}
-
-async function saveDevice() {
-  try {
-    await $fetch(`/api/devices/${deviceId}`, {
-      method: 'PUT',
-      body: editForm.value,
-    })
-    editing.value = false
-    await loadDevice()
-    Notify.create({
-      type: 'positive',
-      message: 'Cihaz güncellendi',
-    })
-  }
-  catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Cihaz güncellenemedi',
-    })
   }
 }
 
@@ -208,22 +172,18 @@ async function deleteSensor(id: number) {
     message: 'Bu sensörü silmek istediğinizden emin misiniz?',
     cancel: true,
     persistent: true,
+  }).onOk(async () => {
+    try {
+      await $fetch(`/api/sensors/${id}`, { method: 'DELETE' })
+      await loadSensors()
+    }
+    catch (error: any) {
+      Notify.create({
+        type: 'negative',
+        message: error.data?.message || 'Sensör silinemedi',
+      })
+    }
   })
-    .onOk(async () => {
-      try {
-        await $fetch(`/api/sensors/${id}`, { method: 'DELETE' })
-        await loadSensors()
-      }
-      catch (error: any) {
-        Notify.create({
-          type: 'negative',
-          message: error.data?.message || 'Sensör silinemedi',
-        })
-      }
-    })
-    .onCancel(() => {
-      // Kullanıcı iptal etti
-    })
 }
 
 function getSensorIcon(sensor: Sensor) {
@@ -233,6 +193,11 @@ function getSensorIcon(sensor: Sensor) {
 function getSensorLabel(sensor: Sensor) {
   return sensor.type_label || sensor.type_name || ''
 }
+
+const fieldOptions = computed(() => [
+  { label: 'Atanmamış', value: null },
+  ...fields.value.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id })),
+])
 
 onMounted(() => {
   loadDevice()
@@ -256,105 +221,44 @@ onMounted(() => {
               </div>
               <q-space />
               <q-btn
-                v-if="!editing"
                 flat
                 color="primary"
                 icon="edit"
                 label="Düzenle"
-                @click="editing = true"
+                @click="showEditDialog = true"
               />
             </div>
 
-            <!-- Görüntüleme Modu -->
-            <div v-if="!editing">
-              <div class="text-caption text-grey-7 q-mt-sm">
-                Tip: {{ device?.type || "-" }} | Konum:
-                {{ device?.location || "-" }}
-              </div>
-              <div class="text-caption text-grey-7">
-                Tarla:
-                <template v-if="device?.field_name">
-                  <q-badge color="green-8" class="q-ml-xs">
-                    {{ device.field_name }}
-                  </q-badge>
-                  <q-btn
-                    flat
-                    dense
-                    size="sm"
-                    color="negative"
-                    icon="link_off"
-                    class="q-ml-xs"
-                    @click="removeFromField"
-                  >
-                    <q-tooltip>Tarladan Kaldır</q-tooltip>
-                  </q-btn>
-                </template>
-                <template v-else>
-                  Atanmamış
-                </template>
-              </div>
-              <div class="q-mt-sm">
-                <q-badge
-                  :color="device?.status === 1 ? 'positive' : 'grey'"
-                >
-                  {{
-                    device?.status === 1
-                      ? "Aktif"
-                      : "Pasif"
-                  }}
+            <div class="text-caption text-grey-7 q-mt-sm">
+              Tip: {{ device?.type || '-' }} | Konum:
+              {{ device?.location || '-' }}
+            </div>
+            <div class="text-caption text-grey-7">
+              Tarla:
+              <template v-if="device?.field_name">
+                <q-badge color="green-8" class="q-ml-xs">
+                  {{ device.field_name }}
                 </q-badge>
-              </div>
-            </div>
-
-            <!-- Düzenleme Modu -->
-            <div v-else class="q-mt-md">
-              <q-input
-                v-model="editForm.name"
-                outlined
-                label="Cihaz Adı"
-                class="q-mb-md"
-              />
-              <q-input
-                v-model="editForm.type"
-                outlined
-                label="Cihaz Tipi"
-                class="q-mb-md"
-                hint="Örn: ESP32, Arduino"
-              />
-              <q-input
-                v-model="editForm.location"
-                outlined
-                label="Konum"
-                class="q-mb-md"
-                hint="Örn: Sera 1, Bahçe"
-              />
-              <q-select
-                v-model="editForm.field_id"
-                outlined
-                :options="[{ label: 'Atanmamış', value: null }, ...fields.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))]"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                label="Tarla"
-                class="q-mb-md"
-              />
-              <q-toggle
-                v-model="editForm.status"
-                :true-value="1"
-                :false-value="0"
-                label="Aktif"
-                class="q-mb-md"
-              />
-              <div class="row q-gutter-sm">
                 <q-btn
-                  unelevated
-                  color="green-8"
-                  label="Kaydet"
-                  @click="saveDevice"
-                />
-                <q-btn flat label="İptal" @click="editing = false" />
-              </div>
+                  flat
+                  dense
+                  size="sm"
+                  color="negative"
+                  icon="link_off"
+                  class="q-ml-xs"
+                  @click="removeFromField"
+                >
+                  <q-tooltip>Tarladan Kaldır</q-tooltip>
+                </q-btn>
+              </template>
+              <template v-else>
+                Atanmamış
+              </template>
+            </div>
+            <div class="q-mt-sm">
+              <q-badge :color="device?.status === 1 ? 'positive' : 'grey'">
+                {{ device?.status === 1 ? 'Aktif' : 'Pasif' }}
+              </q-badge>
             </div>
           </q-card-section>
         </q-card>
@@ -420,14 +324,14 @@ onMounted(() => {
 
               <q-card-section>
                 <div class="text-caption text-grey-7">
-                  Birim: {{ sensor.unit_symbol || "-" }}
+                  Birim: {{ sensor.unit_symbol || '-' }}
                 </div>
                 <div class="text-caption text-grey-7">
                   Min:
                   {{
                     sensor.min_value !== null && sensor.min_value !== undefined
                       ? sensor.min_value
-                      : "-"
+                      : '-'
                   }}
                 </div>
                 <div class="text-caption text-grey-7">
@@ -435,7 +339,7 @@ onMounted(() => {
                   {{
                     sensor.max_value !== null && sensor.max_value !== undefined
                       ? sensor.max_value
-                      : "-"
+                      : '-'
                   }}
                 </div>
               </q-card-section>
@@ -460,6 +364,15 @@ onMounted(() => {
             </q-card>
           </div>
         </div>
+
+        <!-- Edit Device Dialog -->
+        <EditDialog
+          v-model="showEditDialog"
+          type="device"
+          :item="device"
+          :fields="fieldOptions"
+          @saved="loadDevice"
+        />
 
         <!-- Add Sensor Dialog -->
         <q-dialog v-model="showAddDialog">
