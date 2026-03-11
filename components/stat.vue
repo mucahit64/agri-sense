@@ -4,11 +4,7 @@ defineProps<{ icon: string, value: string, label: string }>()
 
 <template>
   <div class="col-6 text-center">
-    <q-icon
-      :name="icon"
-      size="32px"
-      color="green-8"
-    />
+    <q-icon :name="icon" size="32px" color="green-8" />
     <div class="text-h6">
       {{ value }}
     </div>
