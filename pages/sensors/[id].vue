@@ -13,7 +13,6 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const { user, logout } = useAuth()
 
 const sensorId = route.params.id as string
 const sensor = ref<Sensor | null>(null)
@@ -51,11 +50,6 @@ async function loadReadings() {
   finally {
     loading.value = false
   }
-}
-
-async function handleLogout() {
-  await logout()
-  router.push('/')
 }
 
 const _chartData = computed(() => {
@@ -125,91 +119,7 @@ onMounted(() => {
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <q-header elevated class="bg-green-8 text-white">
-      <q-toolbar
-        :class="$q.screen.lt.md ? 'q-py-sm' : 'q-py-md'"
-        class="q-pl-lg"
-      >
-        <!-- BACK -->
-        <q-btn
-          flat
-          round
-          dense
-          icon="arrow_back"
-          class="q-mr-sm"
-          @click="router.back()"
-        />
-
-        <!-- TITLE -->
-        <q-toolbar-title class="row items-center no-wrap">
-          <img
-            src="/agri-sense-white.png"
-            alt="AgriSense Logo"
-            :height="$q.screen.lt.md ? 26 : 32"
-            class="q-mr-sm"
-          >
-
-          <!-- SADECE DESKTOP -->
-          <span class="gt-sm"> Sensör Verileri </span>
-        </q-toolbar-title>
-
-        <!-- DESKTOP MENU -->
-        <div v-if="$q.screen.gt.sm" class="row items-center q-gutter-sm">
-          <q-btn flat label="Dashboard" to="/dashboard" />
-          <q-btn flat label="Tarlalar" to="/fields" />
-          <q-btn flat label="Cihazlar" to="/devices" />
-
-          <q-space />
-
-          <div class="q-mx-md text-weight-medium">
-            {{ user?.name }} {{ user?.surname }}
-          </div>
-
-          <q-btn flat label="Çıkış" @click="handleLogout" />
-        </div>
-
-        <!-- MOBILE MENU -->
-        <q-btn v-else flat round dense icon="menu">
-          <q-menu anchor="bottom right" self="top right">
-            <q-list style="min-width: 220px">
-              <!-- USER -->
-              <q-item>
-                <q-item-section>
-                  <div class="text-weight-bold">
-                    {{ user?.name }} {{ user?.surname }}
-                  </div>
-                  <div class="text-caption text-grey-6">
-                    {{ user?.email }}
-                  </div>
-                </q-item-section>
-              </q-item>
-
-              <q-separator />
-
-              <q-item clickable to="/dashboard">
-                <q-item-section>Dashboard</q-item-section>
-              </q-item>
-
-              <q-item clickable to="/fields">
-                <q-item-section>Tarlalar</q-item-section>
-              </q-item>
-
-              <q-item clickable to="/devices">
-                <q-item-section>Cihazlar</q-item-section>
-              </q-item>
-
-              <q-separator />
-
-              <q-item clickable @click="handleLogout">
-                <q-item-section class="text-negative">
-                  Çıkış
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-      </q-toolbar>
-    </q-header>
+    <AppTopbar title="Sensör Verileri" back-to="/sensors" />
 
     <q-page-container>
       <q-page class="q-pa-md">

@@ -12,13 +12,18 @@ export default defineEventHandler(async (event) => {
   }
 
   const user = await db
-    .prepare('SELECT language, country FROM users WHERE id = ?')
+    .prepare('SELECT name, surname, username, mail, phone, language, country FROM users WHERE id = ?')
     .bind(userId)
-    .first<{ language: string | null, country: string | null }>()
+    .first<{ name: string | null, surname: string | null, username: string, mail: string, phone: string | null, language: string | null, country: string | null }>()
 
   return {
     success: true,
     profile: {
+      name: user?.name || null,
+      surname: user?.surname || null,
+      username: user?.username || null,
+      mail: user?.mail || null,
+      phone: user?.phone || null,
       language: user?.language || null,
       country: user?.country || null,
     },
