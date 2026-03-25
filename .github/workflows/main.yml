@@ -1,4 +1,4 @@
-name: Deploy to AgriSense
+name: Deploy to Cloudflare Workers
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  ftp-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,15 +18,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Generate static site
-        run: pnpm generate
-
-      - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          port: ${{ secrets.FTP_PORT }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: .output/public/
-          server-dir: /domains/mucahityaman.com/public_html/agrisense/
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy
