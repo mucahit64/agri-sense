@@ -44,6 +44,19 @@ const form = ref({
 
 const saving = ref(false)
 
+// ─── Dirty check (veri girildi mi?) ──────────────────────
+const isDirty = computed(() => {
+  if (form.value.name)
+    return true
+  if (props.type === 'field') {
+    return !!(form.value.soil_type || form.value.soil_type_custom || form.value.lat !== undefined || form.value.lon !== undefined || form.value.area_m2 !== undefined)
+  }
+  if (props.type === 'device') {
+    return !!(form.value.type || form.value.location || form.value.field_id)
+  }
+  return !!(form.value.type_id || form.value.unit_id || form.value.min_value !== undefined || form.value.max_value !== undefined)
+})
+
 // ─── Soil type options (DB + virtual "Diğer") ─────────────
 const soilTypeOptions = computed(() => {
   const opts = (props.soilTypes || []).map(st => ({ label: st.name, value: st.name }))
@@ -166,7 +179,7 @@ async function save() {
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" :persistent="isDirty" @hide="onDialogHide">
     <BaseDialog
       :title="config.title"
       :icon="config.icon"

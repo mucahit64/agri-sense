@@ -46,6 +46,49 @@ const form = ref({
 
 const saving = ref(false)
 
+// ─── Original values snapshot (dirty check için) ─────────
+const originalValues = ref<Record<string, any>>({})
+
+function snapshotOriginal() {
+  if (props.type === 'field') {
+    originalValues.value = {
+      name: form.value.name,
+      soil_type: form.value.soil_type,
+      soil_type_custom: form.value.soil_type_custom,
+      lat: form.value.lat,
+      lon: form.value.lon,
+      area_m2: form.value.area_m2,
+      is_active: form.value.is_active,
+    }
+  }
+  else if (props.type === 'device') {
+    originalValues.value = {
+      name: form.value.name,
+      type: form.value.type,
+      location: form.value.location,
+      field_id: form.value.field_id,
+      status: form.value.status,
+    }
+  }
+  else {
+    originalValues.value = {
+      name: form.value.name,
+      type_id: form.value.type_id,
+      unit_id: form.value.unit_id,
+      min_value: form.value.min_value,
+      max_value: form.value.max_value,
+    }
+  }
+}
+
+const isDirty = computed(() => {
+  for (const key of Object.keys(originalValues.value)) {
+    if (form.value[key as keyof typeof form.value] !== originalValues.value[key])
+      return true
+  }
+  return false
+})
+
 const soilTypeOptions = computed(() => {
   const opts = (props.soilTypes || []).map(st => ({ label: st.name, value: st.name }))
   opts.push({ label: 'Diğer', value: '__other__' })
@@ -93,6 +136,15 @@ watch(
       form.value.min_value = s.min_value ?? undefined
       form.value.max_value = s.max_value ?? undefined
     }
+  },
+  { immediate: true },
+)
+
+// İlk yükleme sonrası orijinal değerleri kaydet
+watch(
+  () => props.item,
+  () => {
+    nextTick(() => snapshotOriginal())
   },
   { immediate: true },
 )
@@ -210,7 +262,7 @@ async function save() {
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" :persistent="isDirty" @hide="onDialogHide">
     <BaseDialog
       :title="config.title"
       :icon="config.icon"
