@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { WeatherForecastItem, WeatherForecastResponse } from '~/types'
 
-const { checkAuth } = useAuth()
 const router = useRouter()
+const { checkAuth } = useAuth()
 
 const weather = ref<WeatherForecastResponse | null>(null)
 const weatherLoading = ref(false)

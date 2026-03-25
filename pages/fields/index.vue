@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { Field } from '~/types'
-import { Dialog, Notify } from 'quasar'
-import { soilTypes } from '~/utils/constants'
+import type { Field, SoilType } from '~/types'
+import AddDialog from '~/components/AddDialog.vue'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
+import EditDialog from '~/components/EditDialog.vue'
+import { useNotify } from '~/composables/useNotify'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -13,18 +15,22 @@ definePageMeta({
   },
 })
 
+const $q = useQuasar()
+const { notifySuccess, notifyError } = useNotify()
+
 const fields = ref<Field[]>([])
+const soilTypes = ref<SoilType[]>([])
 const loading = ref(true)
-const showAddDialog = ref(false)
-const showEditDialog = ref(false)
-const editingField = ref<Field | null>(null)
-const newField = ref({
-  name: '',
-  lat: undefined as number | undefined,
-  lon: undefined as number | undefined,
-  area_m2: undefined as number | undefined,
-  soil_type: '',
-})
+
+async function loadSoilTypes() {
+  try {
+    const response = await $fetch<{ success: boolean, soilTypes: SoilType[] }>('/api/soil-types')
+    soilTypes.value = response.soilTypes
+  }
+  catch (error) {
+    console.error('Toprak tipleri yüklenemedi:', error)
+  }
+}
 
 async function loadFields() {
   try {
@@ -43,64 +49,55 @@ async function loadFields() {
 }
 
 async function addField() {
-  try {
-    await $fetch('/api/fields', {
-      method: 'POST',
-      body: newField.value,
-    })
-    showAddDialog.value = false
-    newField.value = {
-      name: '',
-      lat: undefined,
-      lon: undefined,
-      area_m2: undefined,
-      soil_type: '',
-    }
-    await loadFields()
-    Notify.create({
-      type: 'positive',
-      message: 'Tarla başarıyla eklendi',
-    })
-  }
-  catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Tarla eklenemedi',
-    })
-  }
+  $q.dialog({
+    component: AddDialog,
+    componentProps: {
+      type: 'field',
+      item: null,
+      soilTypes: soilTypes.value,
+    },
+  }).onOk(() => {
+    loadFields()
+    loadSoilTypes()
+  })
 }
 
 async function deleteField(id: number) {
-  Dialog.create({
-    title: 'Onay',
-    message: 'Bu tarlayı silmek istediğinizden emin misiniz?',
-    cancel: true,
-    persistent: true,
+  $q.dialog({
+    component: ConfirmDialog,
+    componentProps: {
+      title: 'Tarlayı Sil',
+      message: 'Bu tarlayı silmek istediğinizden emin misiniz?',
+    },
   }).onOk(async () => {
     try {
       await $fetch(`/api/fields/${id}`, { method: 'DELETE' })
       await loadFields()
-      Notify.create({
-        type: 'positive',
-        message: 'Tarla başarıyla silindi',
-      })
+      notifySuccess('Tarla başarıyla silindi')
     }
     catch (error: any) {
-      Notify.create({
-        type: 'negative',
-        message: error.data?.message || 'Tarla silinemedi',
-      })
+      notifyError(error.data?.message || 'Tarla silinemedi')
     }
   })
 }
 
 function openEditDialog(field: Field) {
-  editingField.value = field
-  showEditDialog.value = true
+  $q.dialog({
+    component: EditDialog,
+    componentProps: {
+      type: 'field',
+      item: field,
+      soilTypes: soilTypes.value,
+    },
+  }).onOk(() => {
+    loadFields()
+    loadSoilTypes()
+  })
 }
 
 onMounted(() => {
   loadFields()
+  loadSoilTypes()
 })
 </script>
 
@@ -120,7 +117,7 @@ onMounted(() => {
             color="green-8"
             label="Yeni Tarla Ekle"
             icon="add"
-            @click="showAddDialog = true"
+            @click="addField()"
           />
         </div>
 
@@ -140,7 +137,7 @@ onMounted(() => {
             color="green-8"
             label="İlk Tarlanızı Ekleyin"
             class="q-mt-md"
-            @click="showAddDialog = true"
+            @click="addField()"
           />
         </div>
 
@@ -204,82 +201,6 @@ onMounted(() => {
             </q-card>
           </div>
         </div>
-
-        <!-- Add Field Dialog -->
-        <q-dialog v-model="showAddDialog">
-          <q-card style="min-width: 400px">
-            <q-card-section>
-              <div class="text-h6">
-                Yeni Tarla Ekle
-              </div>
-            </q-card-section>
-
-            <q-card-section>
-              <q-input
-                v-model="newField.name"
-                outlined
-                label="Tarla Adı *"
-                hint="Örn: Kuzey Tarla"
-              />
-              <q-select
-                v-model="newField.soil_type"
-                outlined
-                :options="soilTypes"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                label="Toprak Tipi"
-                class="q-mt-md"
-              />
-              <q-input
-                v-model.number="newField.area_m2"
-                outlined
-                type="number"
-                label="Alan (m²)"
-                class="q-mt-md"
-                hint="Tarlanın alanı"
-              />
-              <q-input
-                v-model.number="newField.lat"
-                outlined
-                type="number"
-                label="Enlem (Lat)"
-                class="q-mt-md"
-                hint="Örn: 39.9334"
-                step="0.0001"
-              />
-              <q-input
-                v-model.number="newField.lon"
-                outlined
-                type="number"
-                label="Boylam (Lon)"
-                class="q-mt-md"
-                hint="Örn: 32.8597"
-                step="0.0001"
-              />
-            </q-card-section>
-
-            <q-card-actions align="right">
-              <q-btn v-close-popup flat label="İptal" />
-              <q-btn
-                unelevated
-                color="green-8"
-                label="Ekle"
-                :disable="!newField.name"
-                @click="addField"
-              />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
-
-        <!-- Edit Field Dialog -->
-        <EditDialog
-          v-model="showEditDialog"
-          type="field"
-          :item="editingField"
-          @saved="loadFields"
-        />
       </q-page>
     </q-page-container>
   </q-layout>

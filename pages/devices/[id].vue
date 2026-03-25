@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { Device, Field, Sensor, SensorType } from '~/types'
-import { Dialog, Notify } from 'quasar'
+import type { Device, Field, Sensor, SensorType, Unit } from '~/types'
+import AddDialog from '~/components/AddDialog.vue'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
+import EditDialog from '~/components/EditDialog.vue'
+import { useNotify } from '~/composables/useNotify'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -12,64 +15,39 @@ definePageMeta({
   },
 })
 
+const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+
+const { notifySuccess, notifyError } = useNotify()
 
 const deviceId = route.params.id as string
 const device = ref<Device | null>(null)
 const sensors = ref<Sensor[]>([])
 const fields = ref<Field[]>([])
 const loading = ref(true)
-const showAddDialog = ref(false)
-const showEditDialog = ref(false)
-
-const newSensor = ref({
-  name: '',
-  type_id: null as number | null,
-  unit_id: null as number | null,
-  min_value: undefined as number | undefined,
-  max_value: undefined as number | undefined,
-})
-
 const sensorTypes = ref<SensorType[]>([])
-const availableUnits = ref<{ id: number, name: string, symbol: string, is_default: number }[]>([])
+const allUnits = ref<Unit[]>([])
 
 async function loadSensorTypes() {
   try {
     const response = await $fetch<{ success: boolean, sensorTypes: SensorType[] }>('/api/sensor-types')
     sensorTypes.value = response.sensorTypes
   }
-  catch (error) {
-    console.error('Sensör tipleri yüklenemedi:', error)
+  catch (error: any) {
+    notifyError(error.data?.message || 'Sensör tipleri yüklenemedi')
   }
 }
 
-async function loadUnitsForType(typeId: number) {
+async function loadUnits() {
   try {
-    const response = await $fetch<{ success: boolean, units: any[] }>(`/api/units?sensor_type_id=${typeId}`)
-    availableUnits.value = response.units
-    const defaultUnit = response.units.find((u: any) => u.is_default === 1)
-    if (defaultUnit) {
-      newSensor.value.unit_id = defaultUnit.id
-    }
-    else if (response.units.length > 0) {
-      newSensor.value.unit_id = response.units[0].id
-    }
+    const response = await $fetch<{ success: boolean, units: Unit[] }>('/api/units')
+    allUnits.value = response.units
   }
-  catch (error) {
-    console.error('Birimler yüklenemedi:', error)
+  catch (error: any) {
+    notifyError(error.data?.message || 'Birimler yüklenemedi')
   }
 }
-
-watch(() => newSensor.value.type_id, (newTypeId) => {
-  if (newTypeId) {
-    loadUnitsForType(newTypeId)
-  }
-  else {
-    availableUnits.value = []
-    newSensor.value.unit_id = null
-  }
-})
 
 async function loadDevice() {
   try {
@@ -78,8 +56,8 @@ async function loadDevice() {
     )
     device.value = response.device
   }
-  catch (error) {
-    console.error('Cihaz yüklenemedi:', error)
+  catch (error: any) {
+    notifyError(error.data?.message || 'Cihaz yüklenemedi')
     router.push('/devices')
   }
 }
@@ -89,8 +67,8 @@ async function loadFields() {
     const response = await $fetch<{ success: boolean, fields: Field[] }>('/api/fields')
     fields.value = response.fields
   }
-  catch (error) {
-    console.error('Tarlalar yüklenemedi:', error)
+  catch (error: any) {
+    notifyError(error.data?.message || 'Tarlalar yüklenemedi')
   }
 }
 
@@ -100,8 +78,8 @@ async function loadSensors() {
     const response = await $fetch<{ success: boolean, sensors: Sensor[] }>(`/api/sensors?device_id=${deviceId}`)
     sensors.value = response.sensors
   }
-  catch (error) {
-    console.error('Sensörler yüklenemedi:', error)
+  catch (error: any) {
+    notifyError(error.data?.message || 'Sensörler yüklenemedi')
   }
   finally {
     loading.value = false
@@ -109,11 +87,14 @@ async function loadSensors() {
 }
 
 async function removeFromField() {
-  Dialog.create({
-    title: 'Onay',
-    message: 'Cihazı tarladan kaldırmak istediğinizden emin misiniz?',
-    cancel: true,
-    persistent: true,
+  $q.dialog({
+    component: ConfirmDialog,
+    componentProps: {
+      title: 'Onayla',
+      message: 'Cihazı tarladan kaldırmak istediğinizden emin misiniz?',
+      confirmLabel: 'Kaldır',
+      confirmColor: 'warning',
+    },
   }).onOk(async () => {
     try {
       await $fetch(`/api/devices/${deviceId}`, {
@@ -121,67 +102,28 @@ async function removeFromField() {
         body: { field_id: null },
       })
       await loadDevice()
-      Notify.create({
-        type: 'positive',
-        message: 'Cihaz tarladan kaldırıldı',
-      })
+      notifySuccess('Cihaz tarladan kaldırıldı')
     }
     catch (error: any) {
-      Notify.create({
-        type: 'negative',
-        message: error.data?.message || 'İşlem başarısız',
-      })
+      notifyError(error.data?.message || 'İşlem başarısız')
     }
   })
 }
 
-async function addSensor() {
-  try {
-    await $fetch('/api/sensors', {
-      method: 'POST',
-      body: {
-        device_id: Number(deviceId),
-        name: newSensor.value.name,
-        type_id: newSensor.value.type_id,
-        unit_id: newSensor.value.unit_id,
-        min_value: newSensor.value.min_value,
-        max_value: newSensor.value.max_value,
-      },
-    })
-    showAddDialog.value = false
-    newSensor.value = {
-      name: '',
-      type_id: null,
-      unit_id: null,
-      min_value: undefined,
-      max_value: undefined,
-    }
-    await loadSensors()
-  }
-  catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Sensör eklenemedi',
-    })
-  }
-}
-
 async function deleteSensor(id: number) {
-  Dialog.create({
-    title: 'Onay',
-    message: 'Bu sensörü silmek istediğinizden emin misiniz?',
-    cancel: true,
-    persistent: true,
+  $q.dialog({
+    component: ConfirmDialog,
+    componentProps: {
+      title: 'Sensörü Sil',
+      message: 'Bu sensörü silmek istediğinizden emin misiniz?',
+    },
   }).onOk(async () => {
     try {
       await $fetch(`/api/sensors/${id}`, { method: 'DELETE' })
       await loadSensors()
     }
     catch (error: any) {
-      Notify.create({
-        type: 'negative',
-        message: error.data?.message || 'Sensör silinemedi',
-      })
+      notifyError(error.data?.message || 'Sensör silinemedi')
     }
   })
 }
@@ -199,11 +141,53 @@ const fieldOptions = computed(() => [
   ...fields.value.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id })),
 ])
 
+function openEditDialog(item: Device | null) {
+  $q.dialog({
+    component: EditDialog,
+    componentProps: {
+      type: 'device',
+      item,
+      fields: fieldOptions.value,
+    },
+  }).onOk(() => {
+    loadDevice()
+  })
+}
+
+function openSensorEditDialog(sensor: Sensor) {
+  $q.dialog({
+    component: EditDialog,
+    componentProps: {
+      type: 'sensor',
+      item: sensor,
+      sensorTypes: sensorTypes.value,
+      units: allUnits.value,
+    },
+  }).onOk(() => {
+    loadSensors()
+  })
+}
+
+function openAddDialog() {
+  $q.dialog({
+    component: AddDialog,
+    componentProps: {
+      type: 'sensor',
+      deviceId,
+      sensorTypes: sensorTypes.value,
+      units: allUnits.value,
+    },
+  }).onOk(() => {
+    loadSensors()
+  })
+}
+
 onMounted(() => {
   loadDevice()
   loadSensors()
-  loadSensorTypes()
   loadFields()
+  loadSensorTypes()
+  loadUnits()
 })
 </script>
 
@@ -225,7 +209,7 @@ onMounted(() => {
                 color="primary"
                 icon="edit"
                 label="Düzenle"
-                @click="showEditDialog = true"
+                @click="openEditDialog(device)"
               />
             </div>
 
@@ -273,7 +257,7 @@ onMounted(() => {
             color="green-8"
             label="Yeni Sensör Ekle"
             icon="add"
-            @click="showAddDialog = true"
+            @click="openAddDialog()"
           />
         </div>
 
@@ -291,7 +275,7 @@ onMounted(() => {
             color="green-8"
             label="İlk Sensörünüzü Ekleyin"
             class="q-mt-md"
-            @click="showAddDialog = true"
+            @click="openAddDialog()"
           />
         </div>
 
@@ -356,6 +340,12 @@ onMounted(() => {
                 <q-space />
                 <q-btn
                   flat
+                  color="warning"
+                  icon="edit"
+                  @click="openSensorEditDialog(sensor)"
+                />
+                <q-btn
+                  flat
                   color="negative"
                   icon="delete"
                   @click="deleteSensor(sensor.id)"
@@ -364,88 +354,6 @@ onMounted(() => {
             </q-card>
           </div>
         </div>
-
-        <!-- Edit Device Dialog -->
-        <EditDialog
-          v-model="showEditDialog"
-          type="device"
-          :item="device"
-          :fields="fieldOptions"
-          @saved="loadDevice"
-        />
-
-        <!-- Add Sensor Dialog -->
-        <q-dialog v-model="showAddDialog">
-          <q-card style="min-width: 400px">
-            <q-card-section>
-              <div class="text-h6">
-                Yeni Sensör Ekle
-              </div>
-            </q-card-section>
-
-            <q-card-section>
-              <q-input
-                v-model="newSensor.name"
-                outlined
-                label="Sensör Adı *"
-                class="q-mb-md"
-                hint="Örn: Bahçe Sıcaklık Sensörü"
-                :rules="[(val) => !!val || 'Sensör adı zorunludur']"
-              />
-              <q-select
-                v-model="newSensor.type_id"
-                outlined
-                :options="sensorTypes"
-                option-value="id"
-                option-label="label"
-                emit-value
-                map-options
-                label="Sensör Tipi *"
-                :rules="[(val: number | null) => !!val || 'Sensör tipi zorunludur']"
-              />
-              <q-select
-                v-model="newSensor.unit_id"
-                outlined
-                :options="availableUnits"
-                option-value="id"
-                :option-label="(opt: any) => `${opt.name} (${opt.symbol})`"
-                emit-value
-                map-options
-                label="Birim *"
-                class="q-mt-md"
-                :disable="!newSensor.type_id"
-                :hint="!newSensor.type_id ? 'Önce sensör tipi seçin' : ''"
-                :rules="[(val: number | null) => !!val || 'Birim zorunludur']"
-              />
-              <q-input
-                v-model.number="newSensor.min_value"
-                outlined
-                type="number"
-                label="Minimum Değer"
-                class="q-mt-md"
-                hint="Sensörün ölçebileceği minimum değer"
-              />
-              <q-input
-                v-model.number="newSensor.max_value"
-                outlined
-                type="number"
-                label="Maksimum Değer"
-                class="q-mt-md"
-                hint="Sensörün ölçebileceği maksimum değer"
-              />
-            </q-card-section>
-
-            <q-card-actions align="right">
-              <q-btn v-close-popup flat label="İptal" />
-              <q-btn
-                unelevated
-                color="green-8"
-                label="Ekle"
-                @click="addSensor"
-              />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
       </q-page>
     </q-page-container>
   </q-layout>

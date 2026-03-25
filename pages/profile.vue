@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Notify } from 'quasar'
+import AppTopbar from '~/components/AppTopbar.vue'
+import { useNotify } from '~/composables/useNotify'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -10,6 +11,8 @@ definePageMeta({
     }
   },
 })
+
+const { notifySuccess, notifyError } = useNotify()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -62,10 +65,7 @@ async function loadProfile() {
     }
   }
   catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Profil bilgileri alınamadı',
-    })
+    notifyError(error.data?.message || 'Profil bilgileri alınamadı')
   }
   finally {
     loading.value = false
@@ -86,13 +86,10 @@ async function saveProfile() {
         country: form.value.country || undefined,
       },
     })
-    Notify.create({ type: 'positive', message: 'Profil güncellendi' })
+    notifySuccess('Profil güncellendi')
   }
   catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Profil güncellenemedi',
-    })
+    notifyError(error.data?.message || 'Profil güncellenemedi')
   }
   finally {
     saving.value = false
@@ -101,23 +98,17 @@ async function saveProfile() {
 
 async function savePassword() {
   if (passwordForm.value.new_password !== passwordForm.value.confirm_password) {
-    Notify.create({ type: 'negative', message: 'Yeni şifreler eşleşmiyor' })
+    notifyError('Yeni şifreler eşleşmiyor')
     return
   }
 
   if (passwordForm.value.new_password.length < 6) {
-    Notify.create({
-      type: 'negative',
-      message: 'Yeni şifre en az 6 karakter olmalıdır',
-    })
+    notifyError('Yeni şifre en az 6 karakter olmalıdır')
     return
   }
 
   if (passwordForm.value.current_password === passwordForm.value.new_password) {
-    Notify.create({
-      type: 'warning',
-      message: 'Yeni şifreniz mevcut şifrenizle aynı olamaz',
-    })
+    notifyError('Yeni şifreniz mevcut şifrenizle aynı olamaz')
     return
   }
 
@@ -135,13 +126,10 @@ async function savePassword() {
       new_password: '',
       confirm_password: '',
     }
-    Notify.create({ type: 'positive', message: 'Şifre güncellendi' })
+    notifySuccess('Şifre güncellendi')
   }
   catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Şifre güncellenemedi',
-    })
+    notifyError(error.data?.message || 'Şifre güncellenemedi')
   }
   finally {
     changingPassword.value = false

@@ -9,8 +9,8 @@ definePageMeta({
   },
 })
 
-const { user } = useAuth()
 const router = useRouter()
+const { user } = useAuth()
 
 const stats = ref({
   devices: 0,

@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { Device, Field } from '~/types'
-import { Dialog, Notify } from 'quasar'
+import type { Device, Field, SoilType } from '~/types'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
+import EditDialog from '~/components/EditDialog.vue'
+import { useNotify } from '~/composables/useNotify'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -12,14 +14,27 @@ definePageMeta({
   },
 })
 
+const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+
+const { notifySuccess, notifyError } = useNotify()
 
 const fieldId = route.params.id as string
 const field = ref<Field | null>(null)
 const devices = ref<Device[]>([])
+const soilTypes = ref<SoilType[]>([])
 const loading = ref(true)
-const showEditDialog = ref(false)
+
+async function loadSoilTypes() {
+  try {
+    const response = await $fetch<{ success: boolean, soilTypes: SoilType[] }>('/api/soil-types')
+    soilTypes.value = response.soilTypes
+  }
+  catch (error) {
+    console.error('Toprak tipleri yüklenemedi:', error)
+  }
+}
 
 async function loadField() {
   try {
@@ -53,25 +68,20 @@ async function loadDevices() {
 }
 
 async function deleteField() {
-  Dialog.create({
-    title: 'Onay',
-    message: 'Bu tarlayı silmek istediğinizden emin misiniz?',
-    cancel: true,
-    persistent: true,
+  $q.dialog({
+    component: ConfirmDialog,
+    componentProps: {
+      title: 'Tarlayı Sil',
+      message: 'Bu tarlayı silmek istediğinizden emin misiniz?',
+    },
   }).onOk(async () => {
     try {
       await $fetch(`/api/fields/${fieldId}`, { method: 'DELETE' })
       router.push('/fields')
-      Notify.create({
-        type: 'positive',
-        message: 'Tarla silindi',
-      })
+      notifySuccess('Tarla silindi')
     }
     catch (error: any) {
-      Notify.create({
-        type: 'negative',
-        message: error.data?.message || 'Tarla silinemedi',
-      })
+      notifyError(error.data?.message || 'Tarla silinemedi')
     }
   })
 }
@@ -79,7 +89,22 @@ async function deleteField() {
 onMounted(() => {
   loadField()
   loadDevices()
+  loadSoilTypes()
 })
+
+function openEditDialog() {
+  $q.dialog({
+    component: EditDialog,
+    componentProps: {
+      type: 'field',
+      item: field.value,
+      soilTypes: soilTypes.value,
+    },
+  }).onOk(() => {
+    loadField()
+    loadSoilTypes()
+  })
+}
 </script>
 
 <template>
@@ -101,7 +126,7 @@ onMounted(() => {
                 color="primary"
                 icon="edit"
                 label="Düzenle"
-                @click="showEditDialog = true"
+                @click="openEditDialog()"
               />
               <q-btn
                 flat
@@ -189,14 +214,6 @@ onMounted(() => {
             </q-card>
           </div>
         </div>
-
-        <!-- Edit Field Dialog -->
-        <EditDialog
-          v-model="showEditDialog"
-          type="field"
-          :item="field"
-          @saved="loadField"
-        />
       </q-page>
     </q-page-container>
   </q-layout>

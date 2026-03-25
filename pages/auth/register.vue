@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const { register } = useAuth()
 const router = useRouter()
+const { register } = useAuth()
 
 const name = ref('')
 const surname = ref('')

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { Device, Field } from '~/types'
-import { Dialog, Notify } from 'quasar'
+import AddDialog from '~/components/AddDialog.vue'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
+import EditDialog from '~/components/EditDialog.vue'
+import { useNotify } from '~/composables/useNotify'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -12,18 +15,12 @@ definePageMeta({
   },
 })
 
+const $q = useQuasar()
+const { notifySuccess, notifyError } = useNotify()
+
 const devices = ref<Device[]>([])
 const fields = ref<Field[]>([])
 const loading = ref(true)
-const showAddDialog = ref(false)
-const showEditDialog = ref(false)
-const editingDevice = ref<Device | null>(null)
-const newDevice = ref({
-  name: '',
-  type: '',
-  location: '',
-  field_id: null as number | null,
-})
 
 async function loadFields() {
   try {
@@ -49,49 +46,48 @@ async function loadDevices() {
   }
 }
 
-async function addDevice() {
-  try {
-    await $fetch('/api/devices', {
-      method: 'POST',
-      body: newDevice.value,
-    })
-    showAddDialog.value = false
-    newDevice.value = { name: '', type: '', location: '', field_id: null }
-    await loadDevices()
-    Notify.create({
-      type: 'positive',
-      message: 'Cihaz başarıyla eklendi',
-    })
-  }
-  catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.data?.message || 'Cihaz eklenemedi',
-    })
-  }
-}
-
 async function deleteDevice(id: number) {
-  Dialog.create({
-    title: 'Onay',
-    message: 'Bu cihazı silmek istediğinizden emin misiniz?',
-    cancel: true,
-    persistent: true,
+  $q.dialog({
+    component: ConfirmDialog,
+    componentProps: {
+      title: 'Cihazı Sil',
+      message: 'Bu cihazı silmek istediğinizden emin misiniz?',
+    },
   }).onOk(async () => {
     try {
       await $fetch(`/api/devices/${id}`, { method: 'DELETE' })
       await loadDevices()
-      Notify.create({
-        type: 'positive',
-        message: 'Cihaz başarıyla silindi',
-      })
+      notifySuccess('Cihaz başarıyla silindi')
     }
     catch (error: any) {
-      Notify.create({
-        type: 'negative',
-        message: error.data?.message || 'Cihaz silinemedi',
-      })
+      notifyError(error.data?.message || 'Cihaz silinemedi')
     }
+  })
+}
+
+function openAddDialog() {
+  $q.dialog({
+    component: AddDialog,
+    componentProps: {
+      type: 'device',
+      fields: [{ label: 'Seçilmemiş', value: null }, ...fields.value.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))],
+    },
+  }).onOk(() => {
+    loadDevices()
+    notifySuccess('Cihaz başarıyla eklendi')
+  })
+}
+
+function openEditDialog(device: Device) {
+  $q.dialog({
+    component: EditDialog,
+    componentProps: {
+      type: 'device',
+      item: device,
+      fields: [{ label: 'Seçilmemiş', value: null }, ...fields.value.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))],
+    },
+  }).onOk(() => {
+    loadDevices()
   })
 }
 
@@ -99,11 +95,6 @@ onMounted(() => {
   loadDevices()
   loadFields()
 })
-
-function openEditDialog(device: Device) {
-  editingDevice.value = device
-  showEditDialog.value = true
-}
 </script>
 
 <template>
@@ -122,7 +113,7 @@ function openEditDialog(device: Device) {
             color="green-8"
             label="Yeni Cihaz Ekle"
             icon="add"
-            @click="showAddDialog = true"
+            @click="openAddDialog"
           />
         </div>
 
@@ -142,7 +133,7 @@ function openEditDialog(device: Device) {
             color="green-8"
             label="İlk Cihazınızı Ekleyin"
             class="q-mt-md"
-            @click="showAddDialog = true"
+            @click="openAddDialog"
           />
         </div>
 
@@ -216,71 +207,6 @@ function openEditDialog(device: Device) {
             </q-card>
           </div>
         </div>
-
-        <!-- Edit Device Dialog -->
-        <EditDialog
-          v-model="showEditDialog"
-          type="device"
-          :item="editingDevice"
-          :fields="[{ label: 'Seçilmemiş', value: null }, ...fields.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))]"
-          @saved="loadDevices"
-        />
-
-        <!-- Add Device Dialog -->
-        <q-dialog v-model="showAddDialog">
-          <q-card style="min-width: 400px">
-            <q-card-section>
-              <div class="text-h6">
-                Yeni Cihaz Ekle
-              </div>
-            </q-card-section>
-
-            <q-card-section>
-              <q-input
-                v-model="newDevice.name"
-                outlined
-                label="Cihaz Adı *"
-                hint="Örn: Bahçe Sensörü"
-              />
-              <q-input
-                v-model="newDevice.type"
-                outlined
-                label="Cihaz Tipi"
-                class="q-mt-md"
-                hint="Örn: ESP32, Arduino"
-              />
-              <q-input
-                v-model="newDevice.location"
-                outlined
-                label="Konum"
-                class="q-mt-md"
-                hint="Örn: Sera 1, Bahçe"
-              />
-              <q-select
-                v-model="newDevice.field_id"
-                outlined
-                :options="[{ label: 'Seçilmemiş', value: null }, ...fields.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))]"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                label="Tarla"
-                class="q-mt-md"
-              />
-            </q-card-section>
-
-            <q-card-actions align="right">
-              <q-btn v-close-popup flat label="İptal" />
-              <q-btn
-                unelevated
-                color="green-8"
-                label="Ekle"
-                :disable="!newDevice.name"
-                @click="addDevice"
-              />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
       </q-page>
     </q-page-container>
   </q-layout>

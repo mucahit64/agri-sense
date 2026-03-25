@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const { login } = useAuth()
 const router = useRouter()
+const { login } = useAuth()
 
 const email = ref('')
 const password = ref('')

@@ -61,6 +61,16 @@ export interface Sensor {
   device_name?: string
 }
 
+export interface SoilType {
+  id: number
+  name: string
+  created_by: number | null
+  is_system: number
+  is_approved: number
+  is_active: number
+  created_at: string | null
+}
+
 export interface SensorType {
   id: number
   name: string

@@ -10,8 +10,8 @@ withDefaults(
   },
 )
 
-const { user, logout } = useAuth()
 const router = useRouter()
+const { user, logout } = useAuth()
 
 async function handleLogout() {
   await logout()

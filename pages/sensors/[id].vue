@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Reading, Sensor } from '~/types'
+import type { Reading, Sensor, SensorType, Unit } from '~/types'
+import EditDialog from '~/components/EditDialog.vue'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -12,13 +13,15 @@ definePageMeta({
 })
 
 const route = useRoute()
-const router = useRouter()
+const $q = useQuasar()
 
 const sensorId = route.params.id as string
 const sensor = ref<Sensor | null>(null)
 const readings = ref<Reading[]>([])
 const loading = ref(true)
 const limit = ref(50)
+const sensorTypes = ref<SensorType[]>([])
+const allUnits = ref<Unit[]>([])
 
 function getSensorLabel(sensor: Sensor | null) {
   return sensor?.type_label || sensor?.type_name || ''
@@ -34,6 +37,40 @@ async function loadSensor() {
   catch (error) {
     console.error('Sensör yüklenemedi:', error)
   }
+}
+
+async function loadSensorTypes() {
+  try {
+    const response = await $fetch<{ success: boolean, sensorTypes: SensorType[] }>('/api/sensor-types')
+    sensorTypes.value = response.sensorTypes
+  }
+  catch (error) {
+    console.error('Sensör tipleri yüklenemedi:', error)
+  }
+}
+
+async function loadUnits() {
+  try {
+    const response = await $fetch<{ success: boolean, units: Unit[] }>('/api/units')
+    allUnits.value = response.units
+  }
+  catch (error) {
+    console.error('Birimler yüklenemedi:', error)
+  }
+}
+
+function openEditDialog() {
+  $q.dialog({
+    component: EditDialog,
+    componentProps: {
+      type: 'sensor',
+      item: sensor.value,
+      sensorTypes: sensorTypes.value,
+      units: allUnits.value,
+    },
+  }).onOk(() => {
+    loadSensor()
+  })
 }
 
 async function loadReadings() {
@@ -114,6 +151,8 @@ function convertToPercentage(
 onMounted(() => {
   loadSensor()
   loadReadings()
+  loadSensorTypes()
+  loadUnits()
 })
 </script>
 
@@ -137,6 +176,14 @@ onMounted(() => {
               <div class="text-h6 text-weight-bold">
                 {{ sensor.name || "Sensör Bilgileri" }}
               </div>
+              <q-space />
+              <q-btn
+                flat
+                color="primary"
+                icon="edit"
+                label="Düzenle"
+                @click="openEditDialog()"
+              />
             </div>
 
             <q-separator />
