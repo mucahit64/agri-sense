@@ -478,8 +478,9 @@ onMounted(() => {
                       <div class="col-12 col-sm-6">
                         <q-input
                           v-model="contactForm.name"
-                          label="Adınız Soyadınız *"
+                          label="Ad Soyad"
                           outlined
+                          hide-bottom-space
                           :rules="[val => !!val || 'Bu alan zorunludur']"
                         >
                           <template #prepend>
@@ -494,6 +495,7 @@ onMounted(() => {
                           label="E-posta Adresiniz *"
                           type="email"
                           outlined
+                          hide-bottom-space
                           :rules="[
                             val => !!val || 'Bu alan zorunludur',
                             val => /.+@.+\..+/.test(val) || 'Geçerli bir e-posta adresi giriniz',
@@ -508,7 +510,7 @@ onMounted(() => {
                       <div class="col-12">
                         <q-input
                           v-model="contactForm.phone"
-                          label="Telefon Numaranız"
+                          label="Telefon"
                           outlined
                         >
                           <template #prepend>
@@ -520,7 +522,7 @@ onMounted(() => {
                       <div class="col-12">
                         <q-input
                           v-model="contactForm.message"
-                          label="Mesajınız *"
+                          label="Mesaj"
                           type="textarea"
                           outlined
                           rows="5"

@@ -5,6 +5,7 @@ import BaseDialog from '~/components/BaseDialog.vue'
 defineProps<{
   title: string
   message: string
+  caption?: string
   confirmLabel?: string
   confirmColor?: string
 }>()
@@ -23,7 +24,10 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent()
       :confirm-color="confirmColor ?? 'negative'"
       @ok="onDialogOK"
     >
-      {{ message }}
+      <div>{{ message }}</div>
+      <div v-if="caption" class="text-caption text-grey-7 q-mt-xs">
+        {{ caption }}
+      </div>
     </BaseDialog>
   </q-dialog>
 </template>

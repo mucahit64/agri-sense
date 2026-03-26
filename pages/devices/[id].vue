@@ -182,6 +182,26 @@ function openAddDialog() {
   })
 }
 
+async function deleteDevice() {
+  $q.dialog({
+    component: ConfirmDialog,
+    componentProps: {
+      title: 'Cihazı Sil',
+      message: 'Bu cihazı silmek istediğinizden emin misiniz?',
+      caption: 'Cihaza bağlı tüm sensörler ve okuma verileri de silinecektir.',
+    },
+  }).onOk(async () => {
+    try {
+      await $fetch(`/api/devices/${deviceId}`, { method: 'DELETE' })
+      router.push('/devices')
+      notifySuccess('Cihaz başarıyla silindi')
+    }
+    catch (error: any) {
+      notifyError(error.data?.message || 'Cihaz silinemedi')
+    }
+  })
+}
+
 onMounted(() => {
   loadDevice()
   loadSensors()
@@ -208,8 +228,15 @@ onMounted(() => {
                 flat
                 color="primary"
                 icon="edit"
-                label="Düzenle"
+                :label="$q.screen.gt.xs ? 'Düzenle' : ''"
                 @click="openEditDialog(device)"
+              />
+              <q-btn
+                flat
+                color="negative"
+                icon="delete"
+                :label="$q.screen.gt.xs ? 'Sil' : ''"
+                @click="deleteDevice()"
               />
             </div>
 

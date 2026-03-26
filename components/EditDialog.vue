@@ -314,7 +314,7 @@ async function save() {
           min="0"
         />
         <div class="row q-col-gutter-sm q-gutter-y-md">
-          <div class="col-6">
+          <div class="col-12 col-sm-6">
             <q-input
               v-model.number="form.lat"
               outlined
@@ -324,7 +324,7 @@ async function save() {
               step="0.0001"
             />
           </div>
-          <div class="col-6">
+          <div class="col-12 col-sm-6">
             <q-input
               v-model.number="form.lon"
               outlined

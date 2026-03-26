@@ -18,6 +18,34 @@ const stats = ref({
   readings: 0,
 })
 
+const cityOptions = [
+  { label: 'İstanbul', value: 'istanbul', lat: 41.1194, lon: 29.0063 },
+  { label: 'Ankara', value: 'ankara', lat: 39.9334, lon: 32.8597 },
+  { label: 'İzmir', value: 'izmir', lat: 38.4192, lon: 27.1287 },
+  { label: 'Bursa', value: 'bursa', lat: 40.1826, lon: 29.0665 },
+  { label: 'Antalya', value: 'antalya', lat: 36.8969, lon: 30.7133 },
+  { label: 'Adana', value: 'adana', lat: 37.0000, lon: 35.3213 },
+  { label: 'Konya', value: 'konya', lat: 37.8746, lon: 32.4932 },
+  { label: 'Gaziantep', value: 'gaziantep', lat: 37.0662, lon: 37.3833 },
+  { label: 'Şanlıurfa', value: 'sanliurfa', lat: 37.1591, lon: 38.7969 },
+  { label: 'Diyarbakır', value: 'diyarbakir', lat: 37.9144, lon: 40.2306 },
+  { label: 'Mersin', value: 'mersin', lat: 36.8000, lon: 34.6333 },
+  { label: 'Kayseri', value: 'kayseri', lat: 38.7312, lon: 35.4787 },
+  { label: 'Eskişehir', value: 'eskisehir', lat: 39.7767, lon: 30.5206 },
+  { label: 'Samsun', value: 'samsun', lat: 41.2928, lon: 36.3313 },
+  { label: 'Trabzon', value: 'trabzon', lat: 41.0015, lon: 39.7178 },
+  { label: 'Erzurum', value: 'erzurum', lat: 39.9000, lon: 41.2700 },
+  { label: 'Van', value: 'van', lat: 38.4891, lon: 43.4089 },
+]
+
+const STORAGE_KEY = 'dashboard_selected_city'
+
+const selectedCity = ref(cityOptions[0]!)
+
+watch(selectedCity, (city) => {
+  localStorage.setItem(STORAGE_KEY, city.value)
+})
+
 const weather = ref<any>(null)
 const weatherLoading = ref(false)
 
@@ -52,7 +80,8 @@ async function loadStats() {
 async function loadWeather() {
   weatherLoading.value = true
   try {
-    const response = await $fetch('/api/weather')
+    const { lat, lon } = selectedCity.value
+    const response = await $fetch(`/api/weather?lat=${lat}&lon=${lon}`)
     weather.value = response.weather
   }
   catch (error) {
@@ -79,6 +108,12 @@ async function loadIrrigationAI() {
 }
 
 onMounted(() => {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    const city = cityOptions.find(c => c.value === saved)
+    if (city)
+      selectedCity.value = city
+  }
   loadStats()
   loadWeather()
   loadIrrigationAI()
@@ -267,15 +302,15 @@ onMounted(() => {
                   </q-item>
                   <q-item clickable to="/devices">
                     <q-item-section avatar>
-                      <q-icon name="add_circle" color="green-8" />
+                      <q-icon name="memory" color="green-8" />
                     </q-item-section>
                     <q-item-section>
-                      <q-item-label>Yeni Cihaz Ekle</q-item-label>
+                      <q-item-label>Cihazlarım</q-item-label>
                     </q-item-section>
                   </q-item>
                   <q-item clickable to="/sensors">
                     <q-item-section avatar>
-                      <q-icon name="view_list" color="blue" />
+                      <q-icon name="sensors" color="blue" />
                     </q-item-section>
                     <q-item-section>
                       <q-item-label>Tüm Sensörler</q-item-label>
@@ -295,11 +330,25 @@ onMounted(() => {
           </div>
 
           <div class="col-12 col-md-6">
-            <q-card class="cursor-pointer" @click="router.push('/weather')">
+            <q-card>
               <q-card-section>
-                <div class="text-h6 q-mb-md">
-                  <q-icon name="wb_sunny" class="q-mr-sm" />
-                  Hava Durumu (24 Saat)
+                <div class="row items-center q-mb-md no-wrap">
+                  <div class="text-subtitle1 text-weight-bold cursor-pointer ellipsis" @click="router.push('/weather')">
+                    <q-icon name="wb_sunny" class="q-mr-xs" />
+                    Hava Durumu
+                  </div>
+                  <q-space />
+                  <q-select
+                    v-model="selectedCity"
+                    :options="cityOptions"
+                    option-label="label"
+                    dense
+                    outlined
+                    options-dense
+                    class="col-auto"
+                    style="min-width: 130px; max-width: 160px"
+                    @update:model-value="loadWeather"
+                  />
                 </div>
 
                 <div v-if="weatherLoading" class="text-center q-py-md">
@@ -311,7 +360,7 @@ onMounted(() => {
                     <div
                       v-for="(item, index) in weather.list"
                       :key="index"
-                      class="col-3"
+                      class="col-6 col-sm-3"
                     >
                       <q-card flat bordered class="text-center">
                         <q-card-section class="q-pa-sm">

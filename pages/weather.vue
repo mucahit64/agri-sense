@@ -128,9 +128,9 @@ async function refreshWeather() {
                 <div class="col-12 col-md-4 text-center">
                   <q-icon
                     :name="`img:https://openweathermap.org/img/wn/${getWeatherIcon(currentForecast)}@4x.png`"
-                    size="140px"
+                    :size="$q.screen.lt.sm ? '100px' : '140px'"
                   />
-                  <div class="text-h2 text-weight-bold text-green-8">
+                  <div class="text-h3 text-weight-bold text-green-8">
                     {{ Math.round(currentForecast.main.temp) }}°C
                   </div>
                   <div class="text-h6 text-grey-7 text-capitalize">

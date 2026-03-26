@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Reading, Sensor, SensorType, Unit } from '~/types'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
 import EditDialog from '~/components/EditDialog.vue'
+import { useNotify } from '~/composables/useNotify'
 
 definePageMeta({
   middleware: async (_to, _from) => {
@@ -12,8 +14,10 @@ definePageMeta({
   },
 })
 
-const route = useRoute()
 const $q = useQuasar()
+const route = useRoute()
+const router = useRouter()
+const { notifyError, notifySuccess } = useNotify()
 
 const sensorId = route.params.id as string
 const sensor = ref<Sensor | null>(null)
@@ -34,8 +38,9 @@ async function loadSensor() {
     )
     sensor.value = response.sensor
   }
-  catch (error) {
-    console.error('Sensör yüklenemedi:', error)
+  catch (error: any) {
+    notifyError(error.data?.message || 'Sensör bulunamadı')
+    router.push('/sensors')
   }
 }
 
@@ -148,6 +153,26 @@ function convertToPercentage(
   return rawValue
 }
 
+async function deleteSensor() {
+  $q.dialog({
+    component: ConfirmDialog,
+    componentProps: {
+      title: 'Sensörü Sil',
+      message: 'Bu sensörü silmek istediğinizden emin misiniz?',
+      caption: 'Sensöre bağlı tüm okuma verileri de silinecektir.',
+    },
+  }).onOk(async () => {
+    try {
+      await $fetch(`/api/sensors/${sensorId}`, { method: 'DELETE' })
+      notifySuccess('Sensör başarıyla silindi')
+      router.push('/sensors')
+    }
+    catch (error: any) {
+      notifyError(error.data?.message || 'Sensör silinemedi')
+    }
+  })
+}
+
 onMounted(() => {
   loadSensor()
   loadReadings()
@@ -181,8 +206,15 @@ onMounted(() => {
                 flat
                 color="primary"
                 icon="edit"
-                label="Düzenle"
+                :label="$q.screen.gt.xs ? 'Düzenle' : ''"
                 @click="openEditDialog()"
+              />
+              <q-btn
+                flat
+                color="negative"
+                icon="delete"
+                :label="$q.screen.gt.xs ? 'Sil' : ''"
+                @click="deleteSensor()"
               />
             </div>
 
@@ -338,7 +370,7 @@ onMounted(() => {
           </q-card-section>
 
           <q-card-section v-else-if="readings.length === 0" class="text-center">
-            <q-icon name="database" size="80px" color="grey-5" />
+            <q-icon name="inbox" size="80px" color="grey-5" />
             <div class="text-h6 text-grey-7 q-mt-md">
               Henüz veri yok
             </div>

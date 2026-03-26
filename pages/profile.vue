@@ -14,6 +14,31 @@ definePageMeta({
 
 const { notifySuccess, notifyError } = useNotify()
 
+const languageOptions = [
+  { label: 'Türkçe', value: 'tr' },
+  { label: 'English', value: 'en' },
+  { label: 'Deutsch', value: 'de' },
+  { label: 'Français', value: 'fr' },
+  { label: 'Español', value: 'es' },
+  { label: 'العربية', value: 'ar' },
+  { label: 'Русский', value: 'ru' },
+]
+
+const countryOptions = [
+  { label: 'Türkiye', value: 'TR' },
+  { label: 'United States', value: 'US' },
+  { label: 'United Kingdom', value: 'GB' },
+  { label: 'Germany', value: 'DE' },
+  { label: 'France', value: 'FR' },
+  { label: 'Spain', value: 'ES' },
+  { label: 'Italy', value: 'IT' },
+  { label: 'Netherlands', value: 'NL' },
+  { label: 'Russia', value: 'RU' },
+  { label: 'Saudi Arabia', value: 'SA' },
+  { label: 'Azerbaijan', value: 'AZ' },
+  { label: 'Kazakhstan', value: 'KZ' },
+]
+
 const loading = ref(true)
 const saving = ref(false)
 const changingPassword = ref(false)
@@ -227,35 +252,46 @@ onMounted(() => {
                   </div>
 
                   <div class="col-12">
-                    <q-input
+                    <q-select
                       v-model="form.language"
                       outlined
+                      clearable
+                      :options="languageOptions"
+                      option-value="value"
+                      option-label="label"
+                      emit-value
+                      map-options
+                      options-dense
                       label="Dil"
-                      hint="Örn: tr, en"
                     >
                       <template #prepend>
                         <q-icon name="language" />
                       </template>
-                    </q-input>
+                    </q-select>
                   </div>
 
                   <div class="col-12">
-                    <q-input
+                    <q-select
                       v-model="form.country"
                       outlined
+                      clearable
+                      :options="countryOptions"
+                      option-value="value"
+                      option-label="label"
+                      emit-value
+                      map-options
+                      options-dense
                       label="Ülke"
-                      hint="Örn: Türkiye"
                     >
                       <template #prepend>
                         <q-icon name="public" />
                       </template>
-                    </q-input>
+                    </q-select>
                   </div>
                 </div>
               </q-card-section>
 
               <q-card-actions align="right" class="q-pa-md">
-                <q-btn flat label="İptal" color="grey-8" to="/dashboard" />
                 <q-btn
                   unelevated
                   color="green-8"

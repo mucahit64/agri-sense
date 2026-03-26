@@ -15,7 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <q-card style="min-width: 420px; max-width: 95vw">
+  <q-card style="width: 460px; max-width: 95vw">
     <!-- Header -->
     <q-card-section class="bg-green-8 text-white row items-center q-py-sm">
       <q-icon v-if="icon" :name="icon" size="22px" class="q-mr-sm" />

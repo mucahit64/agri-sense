@@ -26,6 +26,17 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Clear field_id from devices (devices themselves are kept)
+    await db
+      .prepare('UPDATE devices SET field_id = NULL WHERE field_id = ?')
+      .bind(id)
+      .run()
+
+    // Delete dependent records
+    await db.prepare('DELETE FROM device_assignments WHERE field_id = ?').bind(id).run()
+    await db.prepare('DELETE FROM weather WHERE field_id = ?').bind(id).run()
+    await db.prepare('DELETE FROM ai_decisions WHERE field_id = ?').bind(id).run()
+
     await db
       .prepare('DELETE FROM fields WHERE id = ? AND user_id = ?')
       .bind(id, userId)

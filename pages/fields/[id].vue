@@ -43,8 +43,8 @@ async function loadField() {
     )
     field.value = response.field
   }
-  catch (error) {
-    console.error('Tarla yüklenemedi:', error)
+  catch (error: any) {
+    notifyError(error.data?.message || 'Tarla bulunamadı')
     router.push('/fields')
   }
 }
@@ -125,14 +125,14 @@ function openEditDialog() {
                 flat
                 color="primary"
                 icon="edit"
-                label="Düzenle"
+                :label="$q.screen.gt.xs ? 'Düzenle' : ''"
                 @click="openEditDialog()"
               />
               <q-btn
                 flat
                 color="negative"
                 icon="delete"
-                label="Sil"
+                :label="$q.screen.gt.xs ? 'Sil' : ''"
                 @click="deleteField"
               />
             </div>

@@ -26,6 +26,23 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Get sensors of this device to delete their readings
+    const { results: sensors } = await db
+      .prepare('SELECT id FROM sensors WHERE device_id = ?')
+      .bind(id)
+      .all()
+
+    if (sensors.length > 0) {
+      const sensorIds = sensors.map((s: any) => s.id)
+      await db
+        .prepare(`DELETE FROM readings WHERE sensor_id IN (${sensorIds.map(() => '?').join(',')})`)
+        .bind(...sensorIds)
+        .run()
+    }
+
+    await db.prepare('DELETE FROM sensors WHERE device_id = ?').bind(id).run()
+    await db.prepare('DELETE FROM device_assignments WHERE device_id = ?').bind(id).run()
+
     await db
       .prepare('DELETE FROM devices WHERE id = ?')
       .bind(id)
@@ -33,7 +50,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      message: 'Cihaz silindi',
+      message: 'Cihaz ve bağlı tüm sensörler silindi',
     }
   }
   catch (error: any) {

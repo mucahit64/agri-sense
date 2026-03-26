@@ -52,6 +52,7 @@ async function deleteDevice(id: number) {
     componentProps: {
       title: 'Cihazı Sil',
       message: 'Bu cihazı silmek istediğinizden emin misiniz?',
+      caption: 'Cihaza bağlı tüm sensörler ve okuma verileri de silinecektir.',
     },
   }).onOk(async () => {
     try {
