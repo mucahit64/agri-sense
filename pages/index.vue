@@ -126,7 +126,7 @@ onMounted(() => {
   <q-layout view="hHh lpR fFf" class="select-none">
     <!-- HEADER -->
     <q-header elevated class="bg-white text-grey-9">
-      <q-toolbar class="q-px-xl q-py-lg q-pl-lg">
+      <q-toolbar class="q-px-md q-px-sm-xl q-py-sm q-py-sm-lg q-pl-sm q-pl-sm-lg">
         <!-- LOGO / TITLE -->
         <q-toolbar-title
           class="row items-center text-weight-bold text-green-8 cursor-pointer no-wrap"
@@ -206,11 +206,11 @@ onMounted(() => {
           class="hero"
         >
           <div class="content row items-center">
-            <div class="col-12 col-md-6 q-pr-xl">
+            <div class="col-12 col-md-6 hero-text">
               <div class="text-overline text-green-7">
                 AKILLI TARIM PLATFORMU
               </div>
-              <h1 class="text-h3 text-weight-bold q-mt-sm">
+              <h1 class="hero-title text-weight-bold q-mt-sm">
                 Tarımınızı <span class="text-green-8">Veriyle</span> Yönetin
               </h1>
               <p class="text-body1 text-grey-7 q-mt-md">
@@ -307,16 +307,16 @@ onMounted(() => {
             <div
               v-for="(stat, index) in animatedStats"
               :key="index"
-              class="col-12 col-md-3"
+              class="col-6 col-md-3"
             >
               <div class="stat-item">
-                <q-icon :name="stat.icon" size="56px" class="q-mb-md" />
+                <q-icon :name="stat.icon" :size="$q.screen.xs ? '40px' : '56px'" class="q-mb-sm q-mb-md-md" />
 
-                <div class="text-h3 text-weight-bold">
+                <div class="stat-value text-weight-bold">
                   {{ `${stat.current.value}${stat.suffix}` }}
                 </div>
 
-                <div class="text-h6 text-green-2 q-mt-sm">
+                <div class="stat-label text-green-2 q-mt-xs q-mt-sm-sm">
                   {{ stat.label }}
                 </div>
               </div>
@@ -332,11 +332,11 @@ onMounted(() => {
           <h2 class="section-title">
             Nasıl Çalışır?
           </h2>
-          <div class="row q-col-gutter-xl text-center">
+          <div class="row q-col-gutter-xl q-col-gutter-sm-sm text-center">
             <div
               v-for="(step, i) in steps"
               :key="step.title"
-              class="col-12 col-md-4"
+              class="col-12 col-sm-4"
             >
               <q-card
                 flat
@@ -364,7 +364,7 @@ onMounted(() => {
 
         <!-- CTA -->
         <section class="cta">
-          <h2 class="text-h4 text-weight-bold">
+          <h2 class="cta-title text-weight-bold">
             Tarımı Dijitalleştirmenin Tam Zamanı
           </h2>
           <p class="text-body1 q-mt-sm">
@@ -389,7 +389,7 @@ onMounted(() => {
           <h2 class="section-title">
             Bizimle İletişime Geçin
           </h2>
-          <div class="row q-col-gutter-xl">
+          <div class="row q-col-gutter-lg q-col-gutter-sm-xl">
             <!-- Contact Info -->
             <div class="col-12 col-md-5">
               <div class="text-h5 text-weight-bold q-mb-lg">
@@ -492,7 +492,7 @@ onMounted(() => {
                       <div class="col-12 col-sm-6">
                         <q-input
                           v-model="contactForm.email"
-                          label="E-posta Adresiniz *"
+                          label="E-posta"
                           type="email"
                           outlined
                           hide-bottom-space
@@ -571,6 +571,15 @@ onMounted(() => {
   background: linear-gradient(135deg, #f1f8e9, #e8f5e9);
 }
 
+.hero-text {
+  padding-right: 48px;
+}
+
+.hero-title {
+  font-size: 2.125rem; /* text-h3 */
+  line-height: 1.2;
+}
+
 .section {
   padding: 80px 64px;
 }
@@ -610,7 +619,7 @@ onMounted(() => {
   margin: 0 auto;
   border-radius: 50%;
   background: #e8f5e9;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
@@ -625,6 +634,11 @@ onMounted(() => {
   text-align: center;
 }
 
+.cta-title {
+  font-size: 2rem; /* text-h4 */
+  line-height: 1.2;
+}
+
 .stats-section {
   padding: 80px 64px;
   background: linear-gradient(135deg, #2e7d32, #1b5e20);
@@ -633,6 +647,15 @@ onMounted(() => {
 
 .stat-item {
   padding: 24px;
+}
+
+.stat-value {
+  font-size: 2.125rem; /* text-h3 */
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 1.25rem; /* text-h6 */
 }
 
 .hero-card {
@@ -657,5 +680,79 @@ onMounted(() => {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Tablet (sm: 600-1023px) */
+@media (max-width: 1023px) {
+  .hero-text {
+    padding-right: 0;
+  }
+}
+
+/* Mobile (xs: <600px) */
+@media (max-width: 599px) {
+  .hero {
+    min-height: unset;
+    padding: 40px 20px;
+  }
+
+  .hero-title {
+    font-size: 1.6rem;
+  }
+
+  .section {
+    padding: 48px 20px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    margin-bottom: 28px;
+  }
+
+  .feature {
+    padding: 20px;
+  }
+
+  .how-card {
+    padding: 20px;
+  }
+
+  .step-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .cta {
+    padding: 48px 20px;
+  }
+
+  .cta-title {
+    font-size: 1.5rem;
+  }
+
+  .stats-section {
+    padding: 48px 20px;
+  }
+
+  .stat-item {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+  }
+
+  .contact-info-item {
+    margin-bottom: 20px;
+  }
+
+  .contact-form {
+    padding: 4px;
+  }
 }
 </style>
