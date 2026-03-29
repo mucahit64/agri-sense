@@ -1,39 +1,70 @@
 <script setup lang="ts">
+import BackgroundImage from '~/assets/background2.jpg'
+import LandingTopbar from '~/components/LandingTopbar.vue'
+import Stat from '~/components/Stat.vue'
+
 const features = [
   {
-    icon: 'sensors',
-    title: 'Gerçek Zamanlı İzleme',
-    description: 'IoT sensörlerinizden gelen verileri anlık olarak izleyin ve analiz edin.',
+    icon: 'psychology',
+    title: 'AI Destekli Sulama Önerisi',
+    description: 'GPT-4o tabanlı yapay zeka, toprak nemi, sıcaklık ve yağış verilerini analiz ederek günlük sulama tavsiyeleri sunar.',
   },
   {
-    icon: 'cloud_done',
-    title: 'Bulut Tabanlı Sistem',
-    description: 'Verileriniz güvenli bulut altyapısında saklanır, her yerden erişim sağlayın.',
+    icon: 'wb_sunny',
+    title: 'Anlık Hava Durumu',
+    description: '17 şehir ve özel koordinat desteğiyle 5 günlük saat bazlı hava tahmini; rüzgar, basınç ve yağış olasılığı.',
+  },
+  {
+    icon: 'sensors',
+    title: 'Gerçek Zamanlı Sensör İzleme',
+    description: '15+ sensör tipi desteğiyle toprak nemi, sıcaklık, nem, basınç ve ışık seviyesini anlık takip edin.',
   },
   {
     icon: 'analytics',
-    title: 'Gelişmiş Analitik',
-    description: 'Makine öğrenimi destekli analizler ile geleceği tahmin edin.',
+    title: 'Geçmiş Veri Analizi',
+    description: 'Tüm okuma geçmişi korunur. Min, max, ortalama hesaplamalarıyla zaman serisi analizi yapın.',
   },
   {
-    icon: 'notifications_active',
-    title: 'Akıllı Bildirimler',
-    description: 'Kritik değerler için anında uyarı alın, zamanında müdahale edin.',
-  },
-  {
-    icon: 'dashboard_customize',
-    title: 'Özelleştirilebilir Dashboard',
-    description: 'İhtiyacınıza göre panellerinizi düzenleyin, raporlar oluşturun.',
+    icon: 'water_drop',
+    title: 'Toprak Nemi Kalibrasyonu',
+    description: 'Sensör ham değerlerini otomatik yüzdeye çevirir. Min/max kalibrasyon ile doğru nem ölçümü.',
   },
   {
     icon: 'integration_instructions',
-    title: 'Kolay Entegrasyon',
-    description: 'Mevcut sistemlerinizle kolayca entegre edin, API desteği.',
+    title: 'REST API Entegrasyonu',
+    description: 'Arduino ve ESP32 cihazlarınızı 22 RESTful endpoint ile kolayca bağlayın, sensörler otomatik oluşturulsun.',
   },
 ]
 
-const statsSection = ref<HTMLElement | null>(null)
-const hasAnimated = ref(false)
+const highlights = [
+  {
+    icon: 'smart_toy',
+    title: 'Yapay Zeka Tahminleri',
+    description: 'Bugün sulama yapmalı mıyım? AI, sensör verilerinizi ve hava durumunu analiz ederek güven skorlu öneriler sunar.',
+    color: 'green-8',
+  },
+  {
+    icon: 'thermostat',
+    title: 'Çok Sensörlü İzleme',
+    description: 'Toprak nemi, sıcaklık, nem, atmosfer basıncı, rüzgar hızı, ışık seviyesi — hepsini tek panelden izleyin.',
+    color: 'blue-8',
+  },
+  {
+    icon: 'timeline',
+    title: 'Tarihsel Raporlama',
+    description: 'Son 20, 50, 100 veya 200 okumayı listeleyin. Geçmiş trendleri görün, mevsimsel kararlar alın.',
+    color: 'orange-8',
+  },
+]
+
+const techStack = [
+  { icon: 'cloud', label: 'Cloudflare Edge' },
+  { icon: 'smart_toy', label: 'GPT-4o AI' },
+  { icon: 'api', label: '22 REST API' },
+  { icon: 'wifi', label: 'IoT Ready' },
+  { icon: 'language', label: '7 Dil Desteği' },
+  { icon: 'security', label: 'Güvenli Oturum' },
+]
 
 const stats = [
   { icon: 'group', value: 10000, suffix: '+', label: 'Aktif Kullanıcı' },
@@ -42,10 +73,30 @@ const stats = [
   { icon: 'trending_up', value: 40, suffix: '%', label: 'Verimlilik Artışı' },
 ]
 
+const statsSection = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  if (!statsSection.value)
+    return
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry?.isIntersecting) {
+        statsSection.value!.classList.add('animate')
+        observer.disconnect()
+      }
+    },
+    { threshold: 0.3 },
+  )
+
+  observer.observe(statsSection.value)
+})
+
 const steps = [
-  { icon: 'app_registration', title: 'Hesap Oluşturun', description: 'Hızlı ve kolay kayıt ile hemen başlayın.' },
-  { icon: 'settings_input_antenna', title: 'Sensörleri Bağlayın', description: 'IoT sensörlerinizi sisteme entegre edin.' },
-  { icon: 'insights', title: 'İzleyin ve Optimize Edin', description: 'Verilerinizi analiz edin, kararlar alın.' },
+  { icon: 'app_registration', title: 'Hesap Oluşturun', description: 'Hızlı kayıt ile anında başlayın. 7 dil ve 12+ ülke desteği.' },
+  { icon: 'settings_input_antenna', title: 'Cihaz & Sensör Ekleyin', description: 'ESP32/Arduino cihazlarınızı API ile bağlayın, sensörler otomatik tanınsın.' },
+  { icon: 'grass', title: 'Tarlalarınızı Tanımlayın', description: 'Koordinat, alan ve toprak tipiyle tarlalarınızı sisteme ekleyin.' },
+  { icon: 'insights', title: 'Analiz & AI Önerisi Alın', description: 'Sensör verileriniz + hava durumu = AI destekli sulama ve verimlilik tavsiyeleri.' },
 ]
 
 const contactForm = ref({
@@ -65,66 +116,11 @@ function scrollToSection(id: string) {
     el.scrollIntoView({ behavior: 'smooth' })
   }
 }
-
-const animatedStats = stats.map((stat) => {
-  const startValue = Math.max(stat.value - 10, 0)
-
-  return {
-    ...stat,
-    current: ref(startValue),
-    startValue,
-  }
-})
-
-function startAnimation() {
-  if (hasAnimated.value)
-    return
-  hasAnimated.value = true
-
-  animatedStats.forEach((stat) => {
-    const duration = 3000
-    const startTime = performance.now()
-
-    const animate = (time: number) => {
-      const progress = Math.min((time - startTime) / duration, 1)
-      const value
-        = stat.startValue
-          + progress * (stat.value - stat.startValue)
-
-      stat.current.value = Math.floor(value)
-
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      }
-    }
-
-    requestAnimationFrame(animate)
-  })
-}
-
-onMounted(() => {
-  if (!statsSection.value)
-    return
-
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      if (entry?.isIntersecting) {
-        startAnimation()
-        observer.disconnect()
-      }
-    },
-    {
-      threshold: 0.4, // %40 görünce başlasın (ideal)
-    },
-  )
-
-  observer.observe(statsSection.value)
-})
 </script>
 
 <template>
   <q-layout view="hHh lpR fFf" class="select-none">
-    <AppTopbar />
+    <LandingTopbar />
 
     <q-page-container>
       <q-page>
@@ -132,28 +128,36 @@ onMounted(() => {
         <section
           id="top"
           class="hero"
+          :style="{ backgroundImage: `url(${BackgroundImage})` }"
         >
           <div class="content row items-center">
             <div class="col-12 col-md-6 hero-text">
               <div class="text-overline text-green-7">
-                AKILLI TARIM PLATFORMU
+                AI DESTEKLİ AKILLI TARIM PLATFORMU
               </div>
               <h1 class="hero-title text-weight-bold q-mt-sm">
-                Tarımınızı <span class="text-green-8">Veriyle</span> Yönetin
+                Tarımınızı <span class="text-green-8">Yapay Zeka</span> ile Yönetin
               </h1>
               <p class="text-body1 text-grey-7 q-mt-md">
-                IoT sensörleriyle toprak, hava ve çevresel verileri
-                gerçek zamanlı takip edin. Daha az su, daha fazla verim.
+                15+ sensör tipi, anlık hava durumu, AI sulama önerileri ve
+                geçmiş veri analiziyle tarlanızın tam kontrolü elinizde.
               </p>
 
-              <div class="q-gutter-md q-mt-lg">
+              <div class="q-gutter-md q-mt-lg row items-center">
                 <q-btn
                   unelevated
                   color="green-8"
                   label="Ücretsiz Dene"
                   size="lg"
-                  icon=" arrow_forward"
+                  icon="arrow_forward"
                   @click="() => $router.push('/auth/register')"
+                />
+                <q-btn
+                  outline
+                  color="green-8"
+                  label="Özellikleri Keşfet"
+                  size="lg"
+                  @click="scrollToSection('#features')"
                 />
               </div>
             </div>
@@ -161,31 +165,28 @@ onMounted(() => {
             <div class="col-12 col-md-6 q-mt-xl q-mt-md-none">
               <q-card class="hero-card">
                 <q-card-section class="bg-green-8 text-white">
-                  <div class="text-subtitle1">
-                    Canlı Sensör Verileri
+                  <div class="text-subtitle1 row items-center">
+                    <q-icon name="smart_toy" class="q-mr-sm" />
+                    AI Sulama Önerisi
                   </div>
                 </q-card-section>
-                <q-card-section class="row q-col-gutter-md">
-                  <Stat
-                    icon="opacity"
-                    label="Toprak Nemi"
-                    value="68%"
-                  />
-                  <Stat
-                    icon="thermostat"
-                    label="Sıcaklık"
-                    value="24°C"
-                  />
-                  <Stat
-                    icon="water_drop"
-                    label="Nem"
-                    value="89%"
-                  />
-                  <Stat
-                    icon="wb_sunny"
-                    label="Işık"
-                    value="850 lx"
-                  />
+                <q-card-section class="q-pa-md">
+                  <div class="row q-col-gutter-sm q-mb-md">
+                    <Stat icon="opacity" label="Toprak Nemi" value="68%" />
+                    <Stat icon="thermostat" label="Sıcaklık" value="24°C" />
+                    <Stat icon="water_drop" label="Nem" value="89%" />
+                    <Stat icon="wb_sunny" label="Işık" value="850 lx" />
+                  </div>
+                  <q-separator class="q-mb-md" />
+                  <div class="row items-start q-gutter-sm">
+                    <q-icon name="psychology" size="24px" color="green-8" class="q-mt-xs" />
+                    <div class="col text-body2 text-grey-8">
+                      <strong class="text-green-8">AI Önerisi:</strong> Toprak nemi yeterli seviyede ve yağış bekleniyor. Bugün sulama yapmanıza gerek yok.
+                      <div class="text-caption text-grey-6 q-mt-xs">
+                        Güven Skoru: %92 · Son güncelleme: 5 dk önce
+                      </div>
+                    </div>
+                  </div>
                 </q-card-section>
               </q-card>
             </div>
@@ -204,7 +205,7 @@ onMounted(() => {
             <div
               v-for="f in features"
               :key="f.title"
-              class="col-12 col-md-4"
+              class="col-12 col-sm-6 col-md-4"
             >
               <q-card
                 flat
@@ -226,14 +227,60 @@ onMounted(() => {
           </div>
         </section>
 
+        <!-- HIGHLIGHTS (AI, Sensör, Raporlama detayları) -->
+        <section class="section">
+          <h2 class="section-title">
+            Öne Çıkan Yetenekler
+          </h2>
+          <div class="row q-col-gutter-lg">
+            <div
+              v-for="h in highlights"
+              :key="h.title"
+              class="col-12 col-md-4"
+            >
+              <q-card flat bordered class="highlight-card full-height">
+                <q-card-section>
+                  <q-icon :name="h.icon" size="48px" :color="h.color" />
+                  <div class="text-h6 text-weight-bold q-mt-md">
+                    {{ h.title }}
+                  </div>
+                  <p class="text-body2 text-grey-7 q-mt-sm">
+                    {{ h.description }}
+                  </p>
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+        </section>
+
+        <!-- TECH STACK -->
+        <section class="section bg-grey-2">
+          <h2 class="section-title">
+            Kullanılan Teknolojiler
+          </h2>
+          <div class="row q-col-gutter-md justify-center">
+            <div
+              v-for="tech in techStack"
+              :key="tech.label"
+              class="col-6 col-sm-4 col-md-2"
+            >
+              <q-card flat class="tech-card text-center full-height">
+                <q-card-section>
+                  <q-icon :name="tech.icon" size="36px" color="green-8" />
+                  <div class="text-caption text-weight-bold q-mt-sm">
+                    {{ tech.label }}
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+        </section>
+
         <!-- STATS SECTION -->
-        <section
-          ref="statsSection"
-          class="stats-section"
-        >
+        <section ref="statsSection" class="stats-section">
           <div class="row text-center">
             <div
-              v-for="(stat, index) in animatedStats"
+              v-for="(stat, index) in stats"
               :key="index"
               class="col-6 col-md-3"
             >
@@ -241,7 +288,7 @@ onMounted(() => {
                 <q-icon :name="stat.icon" :size="$q.screen.xs ? '40px' : '56px'" class="q-mb-sm q-mb-md-md" />
 
                 <div class="stat-value text-weight-bold">
-                  {{ `${stat.current.value}${stat.suffix}` }}
+                  <span class="count-up" :style="`--start: ${stat.value - 10}; --target: ${stat.value}`" />{{ stat.suffix }}
                 </div>
 
                 <div class="stat-label text-green-2 q-mt-xs q-mt-sm-sm">
@@ -264,7 +311,7 @@ onMounted(() => {
             <div
               v-for="(step, i) in steps"
               :key="step.title"
-              class="col-12 col-sm-4"
+              class="col-12 col-sm-6 col-md-3"
             >
               <q-card
                 flat
@@ -295,8 +342,9 @@ onMounted(() => {
           <h2 class="cta-title text-weight-bold">
             Tarımı Dijitalleştirmenin Tam Zamanı
           </h2>
-          <p class="text-body1 q-mt-sm">
-            14 gün ücretsiz dene, kredi kartı gerekmez.
+          <p class="text-body1 q-mt-sm" style="max-width: 600px; margin: 0 auto;">
+            AI destekli sulama önerileri, 15+ sensör tipi, anlık hava durumu ve geçmiş veri analizi.
+            Şimdi ücretsiz deneyin, tarlanızın verimliliğini artırın!
           </p>
           <q-btn
             unelevated
@@ -454,6 +502,7 @@ onMounted(() => {
                           type="textarea"
                           outlined
                           rows="5"
+                          hide-bottom-space
                           :rules="[val => !!val || 'Bu alan zorunludur']"
                         >
                           <template #prepend>
@@ -496,7 +545,24 @@ onMounted(() => {
 .hero {
   min-height: 80vh;
   padding: 80px 64px;
-  background: linear-gradient(135deg, #f1f8e9, #e8f5e9);
+  background-color: #1b5e20;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(241, 248, 233, 0.78), rgba(232, 245, 233, 0.72));
+  z-index: 0;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-text {
@@ -590,6 +656,27 @@ onMounted(() => {
   border-radius: 20px;
 }
 
+.highlight-card {
+  border-radius: 16px;
+  transition: 0.3s;
+}
+
+.highlight-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.tech-card {
+  border-radius: 12px;
+  background: white;
+  transition: 0.3s;
+}
+
+.tech-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .contact-info-item {
   display: flex;
   gap: 16px;
@@ -681,6 +768,35 @@ html {
 
   .contact-form {
     padding: 4px;
+  }
+}
+
+/* istatistik için css animasyon */
+@property --num {
+  syntax: '<integer>';
+  initial-value: 0;
+  inherits: false;
+}
+
+.count-up {
+  counter-reset: num var(--num);
+  --num: var(--start);
+}
+
+.count-up::after {
+  content: counter(num);
+}
+
+.stats-section.animate .count-up {
+  animation: count-up 5s ease-out forwards;
+}
+
+@keyframes count-up {
+  from {
+    --num: var(--start);
+  }
+  to {
+    --num: var(--target);
   }
 }
 </style>

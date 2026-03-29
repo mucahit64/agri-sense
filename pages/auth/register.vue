@@ -68,6 +68,7 @@ async function handleRegister() {
                 outlined
                 label="Ad"
                 class="q-mb-md"
+                hide-bottom-space
                 :rules="[(val: string) => !!val || 'Ad gerekli']"
               >
                 <template #prepend>
@@ -80,6 +81,7 @@ async function handleRegister() {
                 outlined
                 label="Soyad"
                 class="q-mb-md"
+                hide-bottom-space
                 :rules="[(val: string) => !!val || 'Soyad gerekli']"
               >
                 <template #prepend>
@@ -92,6 +94,7 @@ async function handleRegister() {
                 outlined
                 label="Kullanıcı Adı"
                 class="q-mb-md"
+                hide-bottom-space
                 :rules="[(val: string) => !!val || 'Kullanıcı adı gerekli']"
               >
                 <template #prepend>
@@ -105,6 +108,7 @@ async function handleRegister() {
                 type="email"
                 label="E-posta"
                 class="q-mb-md"
+                hide-bottom-space
                 :rules="[(val: string) => !!val || 'E-posta gerekli']"
               >
                 <template #prepend>
@@ -118,6 +122,7 @@ async function handleRegister() {
                 :type="showPassword ? 'text' : 'password'"
                 label="Şifre"
                 class="q-mb-md"
+                hide-bottom-space
                 :rules="[
                   (val: string) => !!val || 'Şifre gerekli',
                   (val: string) => (val && val.length >= 6) || 'Şifre en az 6 karakter olmalı',
@@ -139,7 +144,6 @@ async function handleRegister() {
                 v-model="phone"
                 outlined
                 label="Telefon"
-                class="q-mb-md"
                 hint="Opsiyonel"
               >
                 <template #prepend>

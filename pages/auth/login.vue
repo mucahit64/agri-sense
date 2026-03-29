@@ -52,6 +52,7 @@ async function handleLogin() {
                 type="email"
                 label="E-posta"
                 class="q-mb-md"
+                hide-bottom-space
                 :rules="[(val: string) => !!val || 'E-posta gerekli']"
               >
                 <template #prepend>
@@ -64,6 +65,7 @@ async function handleLogin() {
                 outlined
                 type="password"
                 label="Şifre"
+                hide-bottom-space
                 :rules="[(val: string) => !!val || 'Şifre gerekli']"
               >
                 <template #prepend>

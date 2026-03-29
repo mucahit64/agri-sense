@@ -303,6 +303,7 @@ async function save() {
           dense
           label="Toprak Tipi (Diğer) *"
           hint="Toprak tipini giriniz"
+          hide-bottom-space
           :rules="[(val: string) => !!val?.trim() || 'Bu alan zorunludur']"
         />
         <q-input
@@ -400,6 +401,7 @@ async function save() {
           map-options
           options-dense
           label="Sensör Tipi *"
+          hide-bottom-space
           :rules="[(val: number | null) => !!val || 'Sensör tipi zorunludur']"
         />
         <q-select
@@ -413,6 +415,7 @@ async function save() {
           map-options
           options-dense
           label="Birim *"
+          hide-bottom-space
           :disable="!form.type_id"
           :hint="!form.type_id ? 'Önce sensör tipi seçin' : ''"
           :rules="[(val: number | null) => !!val || 'Birim zorunludur']"

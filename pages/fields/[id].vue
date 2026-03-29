@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Device, Field, SoilType } from '~/types'
+import AddDialog from '~/components/AddDialog.vue'
 import ConfirmDialog from '~/components/ConfirmDialog.vue'
 import EditDialog from '~/components/EditDialog.vue'
 import { useNotify } from '~/composables/useNotify'
@@ -22,6 +23,7 @@ const { notifySuccess, notifyError } = useNotify()
 
 const fieldId = route.params.id as string
 const field = ref<Field | null>(null)
+const fields = ref<Field[]>([])
 const devices = ref<Device[]>([])
 const soilTypes = ref<SoilType[]>([])
 const loading = ref(true)
@@ -46,6 +48,16 @@ async function loadField() {
   catch (error: any) {
     notifyError(error.data?.message || 'Tarla bulunamadı')
     router.push('/fields')
+  }
+}
+
+async function loadFields() {
+  try {
+    const response = await $fetch<{ success: boolean, fields: Field[] }>('/api/fields')
+    fields.value = response.fields
+  }
+  catch (error) {
+    console.error('Tarlalar yüklenemedi:', error)
   }
 }
 
@@ -90,6 +102,7 @@ onMounted(() => {
   loadField()
   loadDevices()
   loadSoilTypes()
+  loadFields()
 })
 
 function openEditDialog() {
@@ -103,6 +116,20 @@ function openEditDialog() {
   }).onOk(() => {
     loadField()
     loadSoilTypes()
+  })
+}
+
+function openAddDialog() {
+  $q.dialog({
+    component: AddDialog,
+    componentProps: {
+      type: 'device',
+      fields: [{ label: 'Seçilmemiş', value: null }, ...fields.value.map(f => ({ label: f.name || `Tarla #${f.id}`, value: f.id }))],
+      fieldId: Number(fieldId),
+    },
+  }).onOk(() => {
+    loadDevices()
+    notifySuccess('Cihaz başarıyla eklendi')
   })
 }
 </script>
@@ -160,6 +187,14 @@ function openEditDialog() {
           <div class="text-h6 text-weight-bold">
             Bağlı Cihazlar
           </div>
+          <q-space />
+          <q-btn
+            unelevated
+            color="green-8"
+            icon="add"
+            :label="$q.screen.gt.xs ? 'Yeni Cihaz Ekle' : ''"
+            @click="openAddDialog()"
+          />
         </div>
 
         <div v-if="loading" class="text-center q-pa-xl">
@@ -198,6 +233,27 @@ function openEditDialog() {
                       {{ device.type || 'Tip belirtilmemiş' }}
                     </div>
                   </div>
+                </div>
+              </q-card-section>
+
+              <q-separator />
+              <q-card-section>
+                <div class="row items-center q-gutter-sm">
+                  <q-badge
+                    :color="device.status === 1 ? 'positive' : 'grey'"
+                  >
+                    {{
+                      device.status === 1
+                        ? "Aktif"
+                        : "Pasif"
+                    }}
+                  </q-badge>
+                  <q-badge v-if="device.location" color="blue">
+                    {{ device.location }}
+                  </q-badge>
+                  <q-badge v-if="device.field_name" color="green-8">
+                    {{ device.field_name }}
+                  </q-badge>
                 </div>
               </q-card-section>
 
