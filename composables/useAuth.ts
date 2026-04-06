@@ -1,11 +1,11 @@
 export function useAuth() {
   const user = useState<any>('user', () => null)
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     try {
       const response = await $fetch('/api/auth/login', {
         method: 'POST',
-        body: { email, password },
+        body: { identifier, password },
       })
 
       user.value = response.user

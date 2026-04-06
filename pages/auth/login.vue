@@ -2,7 +2,7 @@
 const router = useRouter()
 const { login } = useAuth()
 
-const email = ref('')
+const identifier = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -11,7 +11,7 @@ async function handleLogin() {
   loading.value = true
   error.value = ''
 
-  const result = await login(email.value, password.value)
+  const result = await login(identifier.value, password.value)
 
   loading.value = false
 
@@ -47,16 +47,15 @@ async function handleLogin() {
           <q-card-section>
             <q-form @submit="handleLogin">
               <q-input
-                v-model="email"
+                v-model="identifier"
                 outlined
-                type="email"
-                label="E-posta"
+                label="E-posta veya kullanıcı adı"
                 class="q-mb-md"
                 hide-bottom-space
-                :rules="[(val: string) => !!val || 'E-posta gerekli']"
+                :rules="[(val: string) => !!val || 'E-posta veya kullanıcı adı gerekli']"
               >
                 <template #prepend>
-                  <q-icon name="email" />
+                  <q-icon name="person" />
                 </template>
               </q-input>
 

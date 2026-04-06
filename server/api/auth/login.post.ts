@@ -2,26 +2,26 @@ import type { User } from '~/types'
 
 export default defineEventHandler(async (event) => {
   const db = useDB(event)
-  const { email, password } = await readBody(event)
+  const { identifier, password } = await readBody(event)
 
-  if (!email || !password) {
+  if (!identifier || !password) {
     throw createError({
       statusCode: 400,
-      message: 'Email ve şifre gerekli',
+      message: 'E-posta/kullanıcı adı ve şifre gerekli',
     })
   }
 
   try {
-    // Kullanıcıyı veritabanından bul
+    // Kullanıcıyı e-posta veya kullanıcı adı ile bul
     const user = await db
-      .prepare('SELECT * FROM users WHERE mail = ?')
-      .bind(email)
+      .prepare('SELECT * FROM users WHERE mail = ? OR username = ?')
+      .bind(identifier, identifier)
       .first() as User | null
 
     if (!user) {
       throw createError({
         statusCode: 401,
-        message: 'Geçersiz email veya şifre',
+        message: 'Geçersiz e-posta/kullanıcı adı veya şifre',
       })
     }
 
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     if (String(user.password_hash) !== String(password)) {
       throw createError({
         statusCode: 401,
-        message: 'Geçersiz email veya şifre',
+        message: 'Geçersiz e-posta/kullanıcı adı veya şifre',
       })
     }
 

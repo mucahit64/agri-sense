@@ -13,6 +13,11 @@ definePageMeta({
 })
 
 const { notifySuccess, notifyError } = useNotify()
+const { user } = useAuth()
+
+const usernameAvailable = ref<boolean | null>(null)
+const checkingUsername = ref(false)
+let usernameCheckTimer: ReturnType<typeof setTimeout> | null = null
 
 const languageOptions = [
   { label: 'Türkçe', value: 'tr' },
@@ -88,6 +93,10 @@ async function loadProfile() {
       language: p.language || '',
       country: p.country || '',
     }
+    // Profil yüklenince kullanıcı adı kontrolünü sıfırla
+    nextTick(() => {
+      usernameAvailable.value = null
+    })
   }
   catch (error: any) {
     notifyError(error.data?.message || 'Profil bilgileri alınamadı')
@@ -164,6 +173,33 @@ async function savePassword() {
 onMounted(() => {
   loadProfile()
 })
+
+watch(() => form.value.username, (val) => {
+  usernameAvailable.value = null
+  if (usernameCheckTimer) {
+    clearTimeout(usernameCheckTimer)
+  }
+  if (!val || val.trim().length < 3) {
+    checkingUsername.value = false
+    return
+  }
+  checkingUsername.value = true
+  usernameCheckTimer = setTimeout(async () => {
+    try {
+      const params: Record<string, string | number> = { username: val.trim() }
+      if (user.value?.id)
+        params.excludeId = user.value.id
+      const res = await $fetch<{ available: boolean }>('/api/auth/check-username', { params })
+      usernameAvailable.value = res.available
+    }
+    catch {
+      usernameAvailable.value = null
+    }
+    finally {
+      checkingUsername.value = false
+    }
+  }, 500)
+})
 </script>
 
 <template>
@@ -217,9 +253,16 @@ onMounted(() => {
                       v-model="form.username"
                       outlined
                       label="Kullanıcı Adı"
+                      :error="usernameAvailable === false"
+                      :error-message="usernameAvailable === false ? 'Bu kullanıcı adı zaten alınmış' : ''"
                     >
                       <template #prepend>
                         <q-icon name="alternate_email" />
+                      </template>
+                      <template #append>
+                        <q-spinner v-if="checkingUsername" size="18px" color="grey-6" />
+                        <q-icon v-else-if="usernameAvailable === true" name="check_circle" color="positive" />
+                        <q-icon v-else-if="usernameAvailable === false" name="cancel" color="negative" />
                       </template>
                     </q-input>
                   </div>

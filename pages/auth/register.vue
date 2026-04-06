@@ -12,8 +12,42 @@ const loading = ref(false)
 const error = ref('')
 
 const showPassword = ref(false)
+const usernameAvailable = ref<boolean | null>(null)
+const checkingUsername = ref(false)
+let usernameCheckTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(username, (val) => {
+  usernameAvailable.value = null
+  if (usernameCheckTimer) {
+    clearTimeout(usernameCheckTimer)
+  }
+  if (!val || val.trim().length < 3) {
+    checkingUsername.value = false
+    return
+  }
+  checkingUsername.value = true
+  usernameCheckTimer = setTimeout(async () => {
+    try {
+      const res = await $fetch<{ available: boolean }>('/api/auth/check-username', {
+        params: { username: val.trim() },
+      })
+      usernameAvailable.value = res.available
+    }
+    catch {
+      usernameAvailable.value = null
+    }
+    finally {
+      checkingUsername.value = false
+    }
+  }, 500)
+})
 
 async function handleRegister() {
+  if (usernameAvailable.value === false) {
+    error.value = 'Bu kullanıcı adı zaten alınmış'
+    return
+  }
+
   loading.value = true
   error.value = ''
 
@@ -94,11 +128,21 @@ async function handleRegister() {
                 outlined
                 label="Kullanıcı Adı"
                 class="q-mb-md"
-                hide-bottom-space
-                :rules="[(val: string) => !!val || 'Kullanıcı adı gerekli']"
+                hint="Opsiyonel"
+                :rules="[
+                  (val: string) => !val || val.trim().length >= 3 || 'Kullanıcı adı en az 3 karakter olmalı',
+                  (val: string) => !val || /^[\w-]+$/.test(val) || 'Kullanıcı adı yalnızca harf, rakam, - ve _ içerebilir',
+                ]"
+                :error="usernameAvailable === false"
+                :error-message="usernameAvailable === false ? 'Bu kullanıcı adı zaten alınmış' : ''"
               >
                 <template #prepend>
                   <q-icon name="alternate_email" />
+                </template>
+                <template #append>
+                  <q-spinner v-if="checkingUsername" size="18px" color="grey-6" />
+                  <q-icon v-else-if="usernameAvailable === true" name="check_circle" color="positive" />
+                  <q-icon v-else-if="usernameAvailable === false" name="cancel" color="negative" />
                 </template>
               </q-input>
 

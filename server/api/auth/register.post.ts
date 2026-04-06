@@ -2,10 +2,10 @@ export default defineEventHandler(async (event) => {
   const db = useDB(event)
   const { name, surname, username, email, password, phone } = await readBody(event)
 
-  if (!name || !surname || !username || !email || !password) {
+  if (!name || !surname || !email || !password) {
     throw createError({
       statusCode: 400,
-      message: 'Ad, soyad, kullanıcı adı, email ve şifre gerekli',
+      message: 'Ad, soyad, email ve şifre gerekli',
     })
   }
 
@@ -40,17 +40,19 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Username zaten kayıtlı mı kontrol et
-    const existingUsername = await db
-      .prepare('SELECT id FROM users WHERE username = ?')
-      .bind(username)
-      .first()
+    // Username zaten kayıtlı mı kontrol et (sadece verilmişse)
+    if (username) {
+      const existingUsername = await db
+        .prepare('SELECT id FROM users WHERE username = ?')
+        .bind(username)
+        .first()
 
-    if (existingUsername) {
-      throw createError({
-        statusCode: 409,
-        message: 'Bu kullanıcı adı zaten kullanılıyor',
-      })
+      if (existingUsername) {
+        throw createError({
+          statusCode: 409,
+          message: 'Bu kullanıcı adı zaten kullanılıyor',
+        })
+      }
     }
 
     const now = new Date().toISOString()
