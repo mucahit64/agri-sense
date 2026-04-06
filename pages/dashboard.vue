@@ -13,6 +13,7 @@ const router = useRouter()
 const { user } = useAuth()
 
 const stats = ref({
+  fields: 0,
   devices: 0,
   sensors: 0,
   readings: 0,
@@ -61,12 +62,14 @@ const payloadExample = `{
 
 async function loadStats() {
   try {
-    const [devicesRes, sensorsRes, readingsRes] = await Promise.all([
+    const [fieldsRes, devicesRes, sensorsRes, readingsRes] = await Promise.all([
+      $fetch<{ success: boolean, fields: any[] }>('/api/fields'),
       $fetch<{ success: boolean, devices: any[] }>('/api/devices'),
       $fetch<{ success: boolean, sensors: any[] }>('/api/sensors'),
       $fetch<{ success: boolean, readings: any[] }>('/api/readings'),
     ])
     stats.value = {
+      fields: fieldsRes.fields?.length || 0,
       devices: devicesRes.devices?.length || 0,
       sensors: sensorsRes.sensors?.length || 0,
       readings: readingsRes.readings?.length || 0,
@@ -241,7 +244,21 @@ onMounted(() => {
         </div>
 
         <div class="row q-col-gutter-md q-pb-md">
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
+            <q-card class="cursor-pointer" @click="router.push('/fields')">
+              <q-card-section class="text-center">
+                <q-icon name="landscape" size="48px" color="green-8" />
+                <div class="text-h4 q-mt-md text-weight-bold">
+                  {{ stats.fields }}
+                </div>
+                <div class="text-caption text-grey-7">
+                  Tarlalar
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-3">
             <q-card class="cursor-pointer" @click="router.push('/devices')">
               <q-card-section class="text-center">
                 <q-icon name="memory" size="48px" color="green-8" />
@@ -255,7 +272,7 @@ onMounted(() => {
             </q-card>
           </div>
 
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
             <q-card class="cursor-pointer" @click="router.push('/sensors')">
               <q-card-section class="text-center">
                 <q-icon name="sensors" size="48px" color="blue" />
@@ -269,7 +286,7 @@ onMounted(() => {
             </q-card>
           </div>
 
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-3">
             <q-card class="cursor-pointer" @click="router.push('/sensors')">
               <q-card-section class="text-center">
                 <q-icon name="analytics" size="48px" color="orange" />
